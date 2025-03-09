@@ -1,0 +1,58 @@
+This project uses txt for docs, mostly follwoing the old-schol unix guidelines
+
+1. Plain Text Only: No rich text formatting (no bold, italics, colors, etc.).
+
+2. Fixed-Width Fonts: Expect that readers will use a fixed-width font (like Courier New or Monospace) for proper alignment.
+3. Limited Line Length: Typically, lines are kept to 80 characters maximum to avoid wrapping issues in various email clients.
+
+4 Titles and sections
+
+This is a title
+---------------
+
+A Section
+
+5.  Separate paragraphs with blank lines.
+
+6. Lists:
+
+Use  - for  bullet points.  Indent sub-lists with spaces.  Numbered lists use numerical, them letter then numeral. Such as 
+
+    1. Top List
+        a. Second level
+        b. Moar nesting
+            i. Then roman
+
+Don't nest lists > 3 levels.
+
+7. Code Blocks:
+
+Indent code blocks with 4 spaces (or a tab, which is often configured to 4 spaces).
+
+This preserves the code's structure.
+Example:
+
+    int main(void) {
+        printf("Hello, world!\n");
+        return 0;
+    }
+
+
+8. Quotes:
+
+Use > to indicate quoted text.
+Multiple > characters indicate nested quotes.
+
+Example:
+
+> This is a quoted line.
+>> This is a nested quoted line.
+
+
+9. Emphasis:
+Use  _ to indicate emphasis
+
+Example:
+    
+    _Note_
+

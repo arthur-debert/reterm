@@ -1,0 +1,92 @@
+
+Common Mistakes:
+----------------
+
+- Refresh and visibility
+    - Forgetting to Call refresh() or wrefresh():
+    - Changes won't be visible until these functions are called.
+    - Not Handling Resizing:
+    - Failing to handle the KEY_RESIZE event can result in a garbled display after the terminal is resized.
+
+- Mixing printw() and mvprintw() with Window Functions:
+- Using functions that operate on stdscr and functions that operate on windows can lead to unexpected behavior.
+
+- Incorrect Use of Attributes:
+    
+     Forgetting to turn off attributes (e.g., bold, color) can lead to unintended effects.
+     
+- Incorrect window sizes:
+     
+     Creating windows that are bigger than the screen, or that overlap in ways that are not intended.
+
+- Not initializing ncurses:
+     Forgetting to call initscr() at the start of the program.
+
+- Not ending ncurses:
+    Forgetting to call endwin() at the end of the program, can leave the terminal in a strange state.
+
+- Assuming specific terminal capabilities:
+    
+    Ncurses tries to abstract terminal differences, but some assumptions can lead to issues on less common terminals. Always test on a variety of terminals.
+
+- Not using noecho() and cbreak():
+
+    These functions are very usefull. noecho() stops typed characters from being displayed by the terminal. cbreak() prevents line buffering, so input is available to the program immediately.
+
+    Alright, let's dive deeper into those common ncurses pitfalls:
+
+\. Forgetting to Call refresh() or wrefresh():
+
+- Explanation:  
+    
+    - ncurses employs a "lazy update" strategy. When you use functions like mvaddch(), addstr(), or wprintw(), you're not directly manipulating the physical terminal screen. Instead, you're modifying a virtual representation of the screen or a window in memory.  
+    - refresh() and wrefresh() are the functions that synchronize these virtual representations with the actual terminal display.  
+    - refresh() updates the standard screen (stdscr) and wrefresh() updates a specified window.  
+
+- Why It's a Problem:  
+    
+    - If you forget to call these functions, the changes you make to your windows or the standard screen will remain in memory and won't be displayed on the terminal.  
+    - This can lead to a frustrating experience where your application seems to be doing nothing.  
+
+- Best Practices:  
+    
+    - Call wrefresh() after making changes to a window.  
+    - Call refresh() after making changes to stdscr or after updating multiple windows.  
+    - Develop a habit of refreshing the screen after any significant UI change.  
+    - When debugging, adding refresh calls more often than needed, can help you see where and when changes are happening.
+
+2\. Not Handling Resizing:
+
+- Explanation:  
+  - Terminal resizing is a common user action. When a user resizes the terminal window, the number of rows and columns available to your ncurses application changes.  
+  - ncurses sends the KEY\_RESIZE event when this occurs.  
+  - If you don't handle this event, your application's layout will become inconsistent with the new terminal size.  
+- Why It's a Problem:  
+  - UI elements might overlap, be cut off, or be placed in incorrect positions.  
+  - The display will become garbled and unusable.  
+- Best Practices:  
+  - Enable keypad input: keypad(stdscr, TRUE);  
+  - In your main loop, check for KEY\_RESIZE using getch().  
+  - When KEY\_RESIZE is detected:  
+    - Call endwin() to clean up the current ncurses state.  
+    - Call refresh() to update stdscr.  
+    - Call clear() to erase the screen.  
+    - Get the new screen size using getmaxyx().  
+    - Redraw your UI elements based on the new size.  
+    - Call refresh() again.
+
+3\. Mixing printw() and mvprintw() with Window Functions:
+
+- Explanation:  
+  - printw() and mvprintw() operate on the standard screen (stdscr). They implicitly modify the cursor position within stdscr.  
+  - Window functions like wprintw(), mvwprintw(), and waddstr() operate on specific windows. They maintain separate cursor positions for each window.  
+- Why It's a Problem:  
+  - Mixing these functions can lead to unpredictable cursor movement and text placement.  
+  - If you use printw() after drawing to a window, the cursor position in stdscr might be out of sync with the cursor position in the window.  
+  - If you draw to a window, then to the stdscr, and then back to the window, the cursor position will likely be wrong in the window.  
+- Best Practices:  
+  - Choose a consistent approach: either use stdscr functions or window functions.  
+  - If you're using windows, stick to window functions for all drawing operations within those windows.  
+  - If you must mix them, carefully manage cursor positions to avoid conflicts.  
+  - It is generally considered better practice to use windows for all but the most simple of ncurses programs.  
+  - When using windows, always use the window specific functions.

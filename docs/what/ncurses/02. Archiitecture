@@ -1,0 +1,46 @@
+Architecture Overview:
+----------------------
+
+ncurses is structured to abstract the complexities of terminal control, presenting a consistent interface to developers. It operates on the principle of maintaining two virtual screens:
+
+Standard Screen (stdscr):
+This represents the physical terminal screen.
+It's the "real" screen that the user sees.
+Window (WINDOW*):
+ncurses allows you to create multiple windows, which are like virtual canvases.
+You draw to these windows, and then ncurses handles updating the stdscr with the changes.
+Windows can overlap, have borders, and have their own scrolling regions.
+Primitives:
+
+Windows (WINDOW*):
+------------------
+
+The core building block. They represent rectangular regions of the terminal.
+Functions like newwin(), delwin(), subwin() are used to create and manage windows.
+Characters and Attributes:
+ncurses works with characters and their attributes (colors, bold, underline, etc.).
+Functions like mvaddch(), addstr(), attron(), attroff() are used to manipulate characters and attributes.
+Input:
+ncurses handles keyboard input, including special keys (arrow keys, function keys).
+Functions like getch(), keypad() are used to get user input.
+Colors:
+ncurses supports color output, allowing you to define color pairs (foreground and background).
+Functions like start_color(), init_pair(), attron() are used for color handling.
+Screen Updates:
+ncurses optimizes screen updates to minimize redraws.
+Functions like refresh(), wrefresh(), redrawwin() are used to update the screen.
+Refresh Cycle:
+
+Drawing to Windows:
+-------------------
+
+You use ncurses functions to draw characters and set attributes within windows.
+Changes are made to the virtual representation of the windows.
+Updating Windows:
+wrefresh() is called on each window that has been changed. This copies the window's content to the standard screen.
+Updating the Standard Screen:
+refresh() is called on stdscr.
+ncurses compares the current state of the standard screen with its previous state.
+It sends the minimum set of terminal control codes to update the physical terminal.
+Terminal Rendering:
+The terminal emulator interprets the control codes and updates the display.

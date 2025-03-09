@@ -1,0 +1,25 @@
+The story of ncurses is rooted in the need for a portable and standardized way to control text-based terminals. Here's a breakdown of its origins:
+
+Early Days and Termcap/Terminfo:
+
+In the early days of Unix, different terminals had different control codes for tasks like moving the cursor, clearing the screen, and changing text attributes.
+To address this, the termcap (terminal capabilities) library was created. It provided a database of terminal capabilities, allowing programs to adapt to different terminals.
+Later, terminfo was developed as a more powerful and efficient replacement for termcap. Terminfo used a compiled database, making it faster and more flexible.
+curses: The Predecessor:
+
+The curses (cursor optimization) library was developed at the University of California, Berkeley, as part of the BSD Unix distribution.
+curses provided a higher-level interface for manipulating the terminal screen, abstracting away the complexities of termcap/terminfo.
+It allowed developers to treat the terminal as a screen of characters, with functions for moving the cursor, drawing text, and handling input.
+ncurses: The GNU Implementation:
+
+As the GNU project gained momentum, there was a need for a free and portable implementation of curses.
+ncurses (new curses) was created by Zeyd M. Ben-Halim with improvements, and later by Eric S. Raymond, as a free software replacement for the original BSD curses.
+The "n" in ncurses stands for "new," indicating that it was a reimplementation and enhancement of the original curses library.
+ncurses was designed to be more portable and compliant with the Single UNIX Specification (SUS).
+It also addressed some limitations of the original curses, such as better support for different character sets and terminal capabilities.
+Why the Name "curses"?
+
+The name "curses" itself refers to the library's ability to control the cursor and optimize screen updates.
+It's a bit of an odd name, and there's no evidence of a specific, deeper meaning behind it. It simply became the accepted name for that type of terminal screen manipulation library.
+The name ncurses, just adds the N for new, to show that it was a new implementation.
+In essence, ncurses is a testament to the evolution of Unix and the need for portable terminal control. It provides a powerful and widely used foundation for creating text-based user interfaces.

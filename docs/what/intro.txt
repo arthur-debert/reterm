@@ -1,0 +1,92 @@
+coursac: A reactive UI framework for ncurses.
+=============================================
+
+coursac is a modern ui toolkit for ncurses application, based on reactive principles.  
+
+
+Ncurses + Reactive = 🖤
+
+ncurses and reactive uis are a perfect match since ncurses is all event drive (mostly keypresses and window resize)
+
+ncurses employs a "lazy update" strategy. When you use functions like mvaddch(), addstr(), or wprintw(), you're not directly manipulating the physical terminal screen. Instead, you're modifying a virtual representation of the screen or a window in memory, a virstual dom kind of thing
+
+Features: 
+--------
+
+coursact strives to make the development experience as smooth as possible, which includes apis for: 
+
+1. Testing and programatic control: 
+
+- Manipulating the cursor.
+- Sending synthetic events
+- Probing the app state and ui tree
+- Test helpers for making assertions on cursact apps
+
+2. Multi channel usage: 
+
+Both these api can be accessed: 
+    
+- As regular python code with an App instance.
+- Prober: command line client to talk to a running curseact app.
+
+3. Logging
+
+Loggings setup, with clean hooks to log ui events or app specific code.
+Probe hooks so events can be logged and verified progamatically.
+
+4. Event Handling
+
+coursact uses blinker, the awesome library for broadcast and signaling in python
+All events are handled in the main app, and dispatched from there. 
+This gives you logging and various other handy tools for free.
+
+5. Layout
+
+reterm manages window resizas and responsive layout. While a much simpler model the flexbox it can: 
+
+- Layout containers with fixed and variable sizing (however only simple sizing distriibutiion and nesting)
+
+
+
+6. Configurable UI 
+
+coursact includes facilities for themeing, keybinding and ui labels as yaml files.
+
+7. Declarative
+
+Components are writen declarative, and events will loop through affected components which are rendered according to their state.
+
+8. Text renderer: 
+
+A text rendering engine that can render to terminal (ansi 256), html , or plain text viewers.
+
+9. toolkit
+
+A focused but useful core of ui elements: 
+
+    * Windows
+    * Buttons
+    * Dialogs
+    * Nav bar 
+    * Help screen
+    * List containers
+    * Editable list containers
+    * Nested list containers
+    * Box input
+    * Numerical inputu
+    * Incr inputs
+    * Progress indicators
+    * Sortable tables
+
+10. Declarative
+
+couresact is a declarative framework, allowying to define via yaml
+
+- Define keybindings, color schemes, labels
+- Apps and component hierachy
+- State conectors: how to pass state to your components
+- Layout properties
+
+
+
+`
