@@ -1,0 +1,34 @@
+UIs make testing and automation much harder than shell commands or apis. 
+
+reterm provide facilities for bridging the gap and giving you simple ways to do programatically interaction and testing. 
+
+retems exposes for any given app, ways to
+
+1. On the query side, to query
+    - State
+    - UI tree
+    - Layout, sizing and position
+    - Render props and status
+
+2. On the control side: 
+    - Generate sinthetic events for keyboard
+    - Generate virtual screen sizes
+    - Generate data update events
+    - Control cursor position
+
+All of these are available in two different  waysL: 
+
+* API: with an App instance, the api will give you programatical control. useful for automatic interaction and user testing.
+* Command line: will communicate with the app through a bi directional socket allowing you to send and get information back. Useful for integration, visual and end2end testing.
+
+API
+----
+
+Most functions are regular parts of the component api,  like listing children, state, label and property.
+
+The control package has functions to generate synthetic events, screens , data updates and cursor pos for any app or component in the tree.
+
+
+Probe: 
+
+The reterm-probe shell program will give you the same abilities, and allows you to address components with a dotted path notation. 

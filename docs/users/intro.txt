@@ -1,0 +1,117 @@
+reterm: A reactive UI framework for ncurses.
+=============================================
+
+reterm is a modern UI toolkit for ncurses applications, based on reactive principles. It simplifies the development of terminal-based applications by combining the event-driven nature of ncurses with reactive UI patterns.
+
+reactive uis provide a much clearer mental model, significant constrained stateful code and a predictable and testable event loop.  
+
+
+Ncurses + Reactive = 🖤
+
+ncurses and reactive UIs are a perfect match since ncurses is all event-driven (mostly keypresses and window resize events). This synergy creates a powerful foundation for building responsive terminal applications.
+
+ncurses employs a "lazy update" strategy. When you use functions like mvaddch(), addstr(), or wprintw(), you're not directly manipulating the physical terminal screen. Instead, you're modifying a virtual representation of the screen or a window in memory - similar to a virtual DOM. reterm leverages this pattern to provide efficient UI updates.
+
+
+Features 
+--------
+reterms offer the building blocks for building smart uis while keeping a simple and consistent api. It tackles the most common needs for app developers such as : 
+
+1. Layout Management
+
+reterm manages window resizes and responsive layout, supporting layout containers with fixed and variable sizing. 
+
+Layout management is a hard problem to solve, and to fit a simple implementation is it less flexible then css flex model, but it's probably enough for most shell apps.
+
+More: features/layout.txt
+
+2. Text Rendering
+
+A text rendering engine that can render to:
+- Terminal (ANSI 256 colors)
+- HTML
+- Plain text viewers
+
+This makes it easy to create rich text interfaces and export them to different formats.
+
+3. UI Toolkit
+
+A focused but useful core of UI elements:
+
+- Windows
+- Buttons
+- Dialogs
+- Nav bar
+- Help screen
+- List containers (including editable and nested variants)
+- Box input
+- Numerical input
+- Incremental inputs
+- Progress indicators
+- Sortable tables
+
+Each component follows consistent patterns and integrates with the reactive system.
+
+Developer Experience
+---------------------
+
+uis are notoriously hard to verify test and debug. ncurse apps even more so for the lack of tooling and structure.
+
+reterm strives to make the development experience as smooth as possible, with the following features:
+
+1. Declarative UI
+
+Components are written declaratively, and events loop through affected components which are rendered according to their state. reterm allows you to define via YAML[1]:
+
+- Keybindings, color schemes, and UI labels
+- App and component hierarchy
+- State connectors: how to pass state to your components
+- Layout properties
+
+Example:
+```yaml
+app:
+  components:
+    - type: Button
+      label: "Save"
+      on_press: save_data
+    - type: TextInput
+      id: username
+      label: "Username"
+```
+
+2. Testing and Debugging Tools
+
+reterm provides comprehensive tools for testing and debugging your applications:
+
+- Manipulating the cursor programmatically
+- Sending synthetic events to test component behavior
+- Probing the app state and UI tree
+- Test helpers for making assertions on reterm apps
+
+3. Multi-channel Usage and Probing
+
+Both these APIs can be accessed:
+    
+- As regular Python code with an App instance
+- Via Prober: a command-line client to talk to a running reterm app
+
+This enables powerful debugging and automation capabilities.
+
+See: features/controling.txt
+
+4. Logging and Event Handling
+
+- Logging setup with clean hooks to log UI events or app-specific code
+- Probe hooks so events can be logged and verified programmatically
+- reterm uses blinker, the awesome library for broadcast and signaling in Python
+- All events are handled in the main app and dispatched from there, giving you logging and various other handy tools for free
+
+
+For more information, examples, and documentation, visit:
+https://github.com/arthut-debert/reterm
+
+
+Notes 
+-----
+[1] YAML was chosen for the minimalist, less boilerprate syntax than json. 

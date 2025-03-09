@@ -1,0 +1,63 @@
+Layout Engine
+=============
+
+Implementing a flexible layout management system is a complex challenge. Sophisticated layout managers often come with significant implementation and usage overhead. However, adapting to different screen sizes is crucial for a good user experience.
+
+Reterm addresses this by providing a minimalist yet effective layout engine, which we believe will be sufficient for most terminal-based applications.
+
+Core Principles:
+
+Reterm's layout engine operates based on these core principles:
+
+*   **Minimum Size:** Each component has a defined minimum size to ensure it remains legible and visually functional, regardless of layout changes.
+*   **Maximum Size:** Components can have a maximum size. For example, buttons typically have a maximum height of one line, while containers might have a maximum height of six lines.
+*   **Dynamic Growth:** Components will dynamically adjust their size to accommodate the content they display, such as text labels or the number of items in a list.
+*   **Overflow Handling:**
+    *   **Text Labels:** If a text label exceeds its maximum size, an ellipsis (...) is added to indicate truncation.
+    *   **Containers:** If a container's content exceeds its maximum size, a scrollbar will appear.
+*   **Expandable Components:** Components can be marked as expandable, meaning they will grow to use all remaining available space.
+*   **Weighted Expansion:** When multiple components are set to "expand" within the same dimension, you can now define their relative `expand_weight`. Components with a higher weight will receive a larger share of the available space. If no `expand_weight` is defined, the default value of 1 is used.
+
+Layout Example:
+
+Consider a typical application layout with the following elements:
+
+*   Navigation Bar (nav bar)
+*   Menu
+*   Text Preview Area
+*   Status Bar (status bar)
+
+In this scenario, the navigation bar, menu, and status bar would each have a `max_height` equal to their `min_height` (typically one line). The text preview area, however, would be designated as "expandable." This means it would dynamically occupy all remaining vertical space after the fixed-size components have been placed.
+
+Weighted Expansion Example:
+
+Now, imagine you want to divide the text preview area into two sub-areas: a larger "Main Preview" and a smaller "Secondary Preview." Both of these components should be expandable, but the "Main Preview" should take up more space.
+
+You can achieve this by setting the `expand_weight` property:
+
+*   **Main Preview:** `expand=True`, `expand_weight=2`
+*   **Secondary Preview:** `expand=True`, `expand_weight=1`
+
+In this case, the "Main Preview" will take up twice as much space as the "Secondary Preview" because of the ratio 2:1.
+
+Limitations:
+
+While this design works well for many simple cases, it is intentionally minimalist and has limitations:
+
+*   **Grid-Based Layouts:** True grid layouts with complex horizontal and vertical alignments are not natively supported.
+*   **Complex Layouts:** It is not possible to build very complex layouts with the default layout manager.
+* **Expandable components**: even with weights, the layout may not be what the user expected.
+
+Guidelines:
+
+To achieve the best results with reterm's layout engine, keep these guidelines in mind:
+
+*   **Mindful Sizing:** Carefully consider the minimum and maximum sizes for your components. For instance, does your title bar realistically need to be eight rows high?
+*   **Expandable Components:**  Carefully consider how space will be distributed among expandable components, using `expand_weight` to achieve the desired layout. If no `expand_weight` is defined, it will default to `1`.
+* **Complex UI:** If you need a very complex UI, consider building a custom layout manager.
+* **Weighted distribution**: weights will only influence the distribution, it does not guarantee a specific number of line.
+
+Custom Layout Managers:
+
+If the built-in layout engine doesn't meet your needs, you can create a custom layout manager. The details of how to do this are beyond the scope of this document, but it will be documented elsewhere.
+
