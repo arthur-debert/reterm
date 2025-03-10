@@ -9,7 +9,8 @@ readme = "README.txt"
 requires-python = ">=3.9"
 license = {file = "LICENSE"}
 dependencies = [
-    "pathspec>=0.12.0"
+    "pathspec>=0.12.0",
+    "blinker (>=1.9.0,<2.0.0)"
 ]
 keywords = ["documentation", "bundler", "minimalist", "text", "prompts"]
 classifiers = [
