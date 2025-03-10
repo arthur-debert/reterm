@@ -1,0 +1,165 @@
+reterm UI Framework Implementation Plan
+---------------------------------------
+
+1. Terminology Standardization
+
+To ensure consistency throughout the framework, we will standardize on the
+following terminology:
+
+- Events: The primary term for all notifications within the system. We will
+  avoid using "signals" to prevent confusion.
+- Event Handlers: Functions that respond to events.
+- Event Emission: The process of generating and dispatching events.
+- Event Propagation: The process of events moving through the component
+  hierarchy.
+
+2. Implementation Sequencing
+
+The implementation is divided into three phases: Minimal, Enhanced, and Full.
+This allows for incremental development and early validation of core
+concepts.
+
+Phase 1: Minimal Viable Framework
+
+    Core Component System:
+    - Base Component class with lifecycle methods
+    - Container class for component hierarchy
+    - Simple event propagation
+    - Basic state management
+
+    Basic Layout Engine:
+    - Vertical and horizontal layouts (VBox, HBox)
+    - Min/max size constraints
+    - Simple expansion rules
+
+    Essential UI Components:
+    - Window (top-level container)
+    - Button
+    - TextInput
+    - Label
+
+    Event System:
+    - Event registration and emission
+    - Basic event handlers
+    - Key event normalization
+
+    Integration with ncurses:
+    - Window management
+    - Basic rendering
+    - Input handling
+
+Notes: 
+ crete cons files for key codes, events names, colors, etc
+ we should have a usable logging, set to debug from the first moment
+
+ test live in  "tests" and are to use pytest with pure functions
+ 
+Phase 2: Enhanced Features
+
+    Advanced Components:
+    - Table
+    - Dialog
+    - Menu
+    - StatusBar
+    - ProgressBar
+    - Checkbox/Radio buttons
+
+    Improved Layout:
+    - Weighted expansion
+    - Nested layouts
+    - Scrollable containers
+
+    State Management:
+    - Application state store
+    - Reactive bindings
+    - State persistence
+
+    Theming System:
+    - Color definitions
+    - Style inheritance
+    - Theme switching
+
+    Enhanced Event Handling:
+    - Event filtering
+    - Custom events
+    - Event transformation
+
+    Developer Tools:
+    - Basic logging
+    - Simple debugging aids
+    - Error reporting
+
+Phase 3: Full Framework
+
+    Advanced UI Components:
+    - Tree view
+    - Tabs
+    - Rich text display
+    - Charts/graphs
+    - Custom component creation
+
+    Advanced Layout:
+    - Grid layout
+    - Responsive layouts
+    - Complex constraints
+
+    Template System:
+    - Component templates
+    - Variable substitution
+    - Template inheritance
+
+    Comprehensive Developer Tools:
+    - Visual debugging
+    - State inspection
+    - Performance profiling
+    - Testing utilities
+
+    Rendering Engine:
+    - Multiple output formats (terminal, HTML, plain text)
+    - Custom renderers
+    - Layout visualization
+
+    Advanced Features:
+    - Accessibility support
+    - Internationalization
+    - Animation/transitions
+    - Drag and drop
+
+3. Implementation Recommendations
+
+    1. Start with Core Architecture:
+        a. Begin with the fundamental component system and event handling
+        b. Establish a solid foundation before adding more complex features
+        c. Focus on the integration with ncurses early to validate the
+           approach
+
+    2. Iterative Development:
+        a. Implement features in small, testable increments
+        b. Create working examples for each feature to validate the design
+        c. Get early feedback on the API design and developer experience
+
+    3. Focus on Developer Experience:
+        a. Prioritize clear error messages and debugging tools
+        b. Develop comprehensive documentation alongside the code
+        c. Create tutorials and examples for common use cases
+
+    4. Testing Strategy:
+        a. Implement automated tests from the beginning
+        b. Create visual test cases for UI components
+        c. Develop a test framework that simulates user interactions
+
+    5. Documentation:
+        a. Document design decisions and rationales
+        b. Provide clear API references
+        c. Include visual examples and diagrams
+        d. Address common pitfalls and gotchas
+
+4. Implementation Sequence Diagram
+
+(Note: Mermaid diagrams are not supported in plain text. The diagram is
+omitted here but was included in the previous markdown version.)
+
+This implementation plan allows for incremental development and early
+validation of the core concepts while providing a clear path to a
+full-featured framework. Each phase builds on the previous one, ensuring
+that the foundation is solid before adding more complex features.

@@ -1,6 +1,6 @@
 [project]
-name = "nanodoc"
-version = "0.4.2"
+name = "reterm"
+version = "0.1.2"
 description = "A minimalist document bundler designed for stitching hints, reminders and short docs."
 authors = [
     {name = "Arthur Debert", email = "arthur@debert.xyz"}
@@ -9,7 +9,8 @@ readme = "README.txt"
 requires-python = ">=3.9"
 license = {file = "LICENSE"}
 dependencies = [
-    "pathspec>=0.12.0"
+    "pathspec>=0.12.0",
+    "blinker (>=1.9.0,<2.0.0)"
 ]
 keywords = ["documentation", "bundler", "minimalist", "text", "prompts"]
 classifiers = [
@@ -23,16 +24,16 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/arthur-debert/nanodoc/"
-Repository = "https://github.com/arthur-debert/nanodoc/"
-"Bug Tracker" = "https://github.com/arthur-debert/nanodoc/issues"
+Homepage = "https://github.com/arthur-debert/reterm/"
+Repository = "https://github.com/arthur-debert/reterm/"
+"Bug Tracker" = "https://github.com/arthur-debert/reterm/issues"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-packages = [{include = "nanodoc"}]
+packages = [{include = "reterm"}]
 include = ["bin/**/*", "README.txt", "LICENSE"]
 exclude = [
     "docs/**/*",
@@ -50,6 +51,10 @@ exclude = [
     "**/*.log"
 ]
 
+[tool.virtualenvs]
+in-project = true
+create = true
+
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
 black = "^25.1.0"
@@ -64,6 +69,3 @@ jinja2 = "^3.1.6"
 
 [tool.poetry.dependencies]
 pathspec = "^0.12.1"
-[tool.scripts]
-nanodoc = "nanodoc.nanodoc:main"
-pmrun = "nanodoc.nanodoc:main"

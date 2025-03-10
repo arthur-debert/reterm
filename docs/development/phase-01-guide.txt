@@ -1,0 +1,164 @@
+reterm Phase I Development Guide
+===============================
+
+This guide provides an overview of what you can do with the reterm framework in Phase I and includes a complete Python example for a simple app.
+
+What's Possible in Phase I
+--------------------------
+
+1. Component Creation and Hierarchy
+   - Create UI components with the base Component class
+   - Build component hierarchies with parent-child relationships
+   - Use unique IDs and names for components
+
+2. Container and Layout Management
+   - Use Container class to manage child components
+   - Create vertical layouts with VBox
+   - Create horizontal layouts with HBox
+   - Set layout spacing between components
+
+3. Component Lifecycle
+   - Initialize components with props
+   - Mount components to make them active
+   - Update components when state or props change
+   - Unmount components to clean up resources
+
+4. Event Handling
+   - Register event handlers with the on() method
+   - Emit events with the emit() method
+   - Use the EventBus for application-wide events
+
+5. State Management
+   - Manage component state with the State class
+   - Listen for state changes with event handlers
+   - Use the StateManager for application-wide state
+
+Complete Python Example
+----------------------
+
+Here's a complete example of a simple app using the reterm framework:
+
+```python
+from reterm import Component, Container, VBox, HBox, EventBus, Events
+
+# Create a simple button component
+class Button(Component):
+    def __init__(self, id=None, props=None):
+        super().__init__(id, props)
+        self.label = props.get("label", "Button")
+        
+    def render(self):
+        super().render()
+        print(f"Rendering button: {self.label}")
+        
+    def handle_event(self, event_name, *args, **kwargs):
+        if event_name == "click":
+            print(f"Button {self.label} clicked!")
+            if "on_click" in self.props:
+                self.props["on_click"]()
+            return True
+        return super().handle_event(event_name, *args, **kwargs)
+
+# Create a simple text input component
+class TextInput(Component):
+    def __init__(self, id=None, props=None):
+        super().__init__(id, props)
+        self.state.set("value", props.get("value", ""))
+        
+    def render(self):
+        super().render()
+        print(f"Rendering text input: {self.state.get('value')}")
+        
+    def set_value(self, value):
+        self.state.set("value", value)
+        
+    def get_value(self):
+        return self.state.get("value")
+        
+    def handle_event(self, event_name, *args, **kwargs):
+        if event_name == "input":
+            self.set_value(kwargs.get("value", ""))
+            return True
+        return super().handle_event(event_name, *args, **kwargs)
+
+# Create a simple app
+class App(Container):
+    def __init__(self):
+        super().__init__(id="app")
+        
+        # Create a global event bus
+        self.event_bus = EventBus()
+        
+        # Create a form with text input and button
+        self.form = VBox(id="form")
+        self.name_input = TextInput(id="name_input", props={"label": "Name"})
+        self.submit_button = Button(id="submit_button", props={
+            "label": "Submit",
+            "on_click": self.handle_submit
+        })
+        
+        # Add components to the form
+        self.form.add_child(self.name_input)
+        self.form.add_child(self.submit_button)
+        
+        # Add the form to the app
+        self.add_child(self.form)
+        
+        # Set layout properties
+        self.size = (24, 80)  # height, width
+        self.layout_spacing = 1
+        
+    def handle_submit(self):
+        name = self.name_input.get_value()
+        print(f"Form submitted with name: {name}")
+        self.event_bus.emit("form_submitted", name=name)
+        
+    def render(self):
+        print("Rendering app")
+        super().render()
+
+# Usage example
+def main():
+    # Create the app
+    app = App()
+    
+    # Mount the app
+    app.mount()
+    
+    # Render the app
+    app.render()
+    
+    # Simulate user input
+    app.name_input.handle_event("input", value="John Doe")
+    
+    # Render again to see the changes
+    app.render()
+    
+    # Simulate button click
+    app.submit_button.handle_event("click")
+    
+    # Unmount the app
+    app.unmount()
+
+if __name__ == "__main__":
+    main()
+```
+
+This example demonstrates:
+- Creating custom components (Button, TextInput)
+- Building a component hierarchy
+- Using containers and layout (VBox)
+- Handling events
+- Managing component state
+- Rendering components
+- Component lifecycle (mount, update, unmount)
+
+Note that this example uses print statements for rendering since the ncurses integration is not yet implemented in Phase I. In future phases, the rendering will be done using ncurses.
+
+Next Steps
+----------
+
+- Implement the ncurses integration for actual terminal rendering
+- Add more UI components (Label, Window, etc.)
+- Enhance the layout engine with more options
+- Implement the YAML-based declarative UI
