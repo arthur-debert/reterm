@@ -7,7 +7,7 @@ bindings from event handling logic allows for easy customization without
 changing component behavior.
 
 Basic Structure
--------------
+---------------
 
 Key bindings are defined in the `key_bindings` section of your YAML
 configuration:
