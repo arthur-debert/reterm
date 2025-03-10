@@ -1,0 +1,315 @@
+Key Bindings
+============
+
+reterm's declarative UI system provides a powerful way to define keyboard
+shortcuts and map them to events in your application. This separation of key
+bindings from event handling logic allows for easy customization without
+changing component behavior.
+
+Basic Structure
+-------------
+
+Key bindings are defined in the `key_bindings` section of your YAML
+configuration:
+
+    app:
+      key_bindings:
+        # Global key bindings
+        global:
+          - key: "Ctrl+S"
+            event: "save_document"
+          - key: "Ctrl+O"
+            event: "open_document"
+          - key: "F1"
+            event: "show_help"
+          - key: "Ctrl+Q"
+            event: "quit_application"
+        
+        # Component-specific key bindings
+        components:
+          editor:
+            - key: "Ctrl+F"
+              event: "find_text"
+            - key: "Ctrl+G"
+              event: "goto_line"
+            - key: "Ctrl+Z"
+              event: "undo"
+            - key: "Ctrl+Y"
+              event: "redo"
+          
+          file_browser:
+            - key: "Enter"
+              event: "open_selected"
+            - key: "Delete"
+              event: "delete_selected"
+            - key: "F2"
+              event: "rename_selected"
+
+Key Binding Types
+---------------
+
+reterm supports two types of key bindings:
+
+1. Global Bindings: Apply throughout the entire application, regardless of which
+   component has focus.
+
+2. Component-specific Bindings: Only apply when a specific component has focus.
+   These are defined under the `components` section, grouped by component ID.
+
+Key Combination Syntax
+--------------------
+
+Key combinations use a familiar syntax similar to GUI applications:
+
+- Single keys: "a", "b", "Enter", "Escape", "Space"
+- Modifier keys: "Ctrl+S", "Alt+F4", "Shift+Tab"
+- Multiple modifiers: "Ctrl+Shift+T", "Ctrl+Alt+Delete"
+- Function keys: "F1", "F2", etc.
+- Special keys: "Home", "End", "PageUp", "PageDown", "Insert", "Delete"
+- Arrow keys: "Up", "Down", "Left", "Right"
+
+Platform Normalization
+--------------------
+
+reterm automatically normalizes key combinations across different platforms. For
+example, "Ctrl+C" on Windows/Linux is automatically translated to "Cmd+C" on
+macOS. This allows you to define a single set of key bindings that work
+consistently across all platforms.
+
+Common platform-specific keys that are normalized:
+
+- Ctrl (Windows/Linux) ↔ Cmd (macOS)
+- Alt (Windows/Linux) ↔ Option (macOS)
+
+Event Mapping
+-----------
+
+Each key binding maps a key or key combination to an event name. When the key is
+pressed, reterm generates an event with the specified name. Components can then
+register handlers for these events without needing to know which keys trigger
+them.
+
+For example:
+
+    # In YAML configuration
+    key_bindings:
+      global:
+        - key: "Ctrl+S"
+          event: "save_document"
+    
+    # In Python code
+    @app.handler("save_document")
+    def save_document(event):
+        # Save the document
+        pass
+
+This separation allows you to change key bindings without modifying the
+underlying application logic.
+
+Key Hints
+--------
+
+For menu items and buttons, you can display key hints to help users discover
+keyboard shortcuts:
+
+    - type: MenuBar
+      id: main_menu
+      items:
+        - label: "File"
+          children:
+            - label: "Save"
+              on_select: "save_document"
+              key_hint: "Ctrl+S"  # Displays "(Ctrl+S)" next to the menu item
+
+The `key_hint` property is purely for display purposes and doesn't actually
+define the key binding. You still need to define the actual binding in the
+`key_bindings` section.
+
+Conflict Detection
+----------------
+
+reterm automatically detects conflicting key bindings during application
+initialization. A conflict occurs when:
+
+1. The same key is bound to different events at the same level (e.g., two
+   different global bindings for "Ctrl+S")
+
+2. A global binding conflicts with a component-specific binding (though this is
+   allowed, as the component-specific binding takes precedence when that
+   component has focus)
+
+When a conflict is detected, reterm raises an exception with details about the
+conflicting bindings:
+
+    KeyBindingConflictError: Conflicting key bindings for 'Ctrl+S':
+    - Global binding to event 'save_document'
+    - Global binding to event 'search_document'
+
+To resolve conflicts, you must modify your key binding configuration to ensure
+each key has only one binding in a given context.
+
+Default Navigation Keys
+--------------------
+
+reterm provides default key bindings for common navigation actions:
+
+- Arrow keys: Navigate between items in a container
+- Tab/Shift+Tab: Move focus to the next/previous focusable component
+- Enter: Activate the focused component (e.g., press a button)
+- Escape: Close dialogs, cancel operations, or return to previous screens
+
+These default bindings are applied automatically unless overridden by your own
+key bindings.
+
+Dynamic Key Bindings
+------------------
+
+Key bindings can be dynamically enabled or disabled based on application state:
+
+    app:
+      key_bindings:
+        global:
+          - key: "Ctrl+S"
+            event: "save_document"
+            enabled: "@state.document_loaded"
+          
+          - key: "Ctrl+P"
+            event: "print_document"
+            enabled: "@state.can_print"
+
+The `enabled` property accepts a state reference or a boolean expression. When
+the expression evaluates to `false`, the key binding is temporarily disabled.
+
+Key Binding Groups
+----------------
+
+For complex applications, you can organize key bindings into logical groups:
+
+    app:
+      key_binding_groups:
+        editing:
+          - key: "Ctrl+X"
+            event: "cut"
+          - key: "Ctrl+C"
+            event: "copy"
+          - key: "Ctrl+V"
+            event: "paste"
+        
+        navigation:
+          - key: "Ctrl+Home"
+            event: "go_to_start"
+          - key: "Ctrl+End"
+            event: "go_to_end"
+      
+      key_bindings:
+        global:
+          groups:
+            - editing
+            - navigation
+          
+          # Additional bindings
+          - key: "Ctrl+S"
+            event: "save_document"
+
+This approach makes it easier to manage large sets of key bindings and reuse
+common groups across different applications.
+
+Example: Text Editor Key Bindings
+-------------------------------
+
+Here's a comprehensive example of key bindings for a text editor application:
+
+    app:
+      key_bindings:
+        global:
+          # File operations
+          - key: "Ctrl+N"
+            event: "new_file"
+          - key: "Ctrl+O"
+            event: "open_file"
+          - key: "Ctrl+S"
+            event: "save_file"
+          - key: "Ctrl+Shift+S"
+            event: "save_file_as"
+          - key: "Ctrl+W"
+            event: "close_file"
+          - key: "Ctrl+Q"
+            event: "quit_application"
+          
+          # View operations
+          - key: "Ctrl+="
+            event: "zoom_in"
+          - key: "Ctrl+-"
+            event: "zoom_out"
+          - key: "Ctrl+0"
+            event: "zoom_reset"
+          - key: "F11"
+            event: "toggle_fullscreen"
+        
+        components:
+          editor:
+            # Editing operations
+            - key: "Ctrl+Z"
+              event: "undo"
+            - key: "Ctrl+Y"
+              event: "redo"
+            - key: "Ctrl+X"
+              event: "cut"
+            - key: "Ctrl+C"
+              event: "copy"
+            - key: "Ctrl+V"
+              event: "paste"
+            
+            # Search operations
+            - key: "Ctrl+F"
+              event: "find"
+            - key: "Ctrl+H"
+              event: "replace"
+            - key: "F3"
+              event: "find_next"
+            - key: "Shift+F3"
+              event: "find_previous"
+            
+            # Navigation operations
+            - key: "Ctrl+G"
+              event: "goto_line"
+            - key: "Ctrl+Home"
+              event: "goto_document_start"
+            - key: "Ctrl+End"
+              event: "goto_document_end"
+
+Best Practices
+------------
+
+1. Consistency:
+   - Follow platform conventions where appropriate
+   - Use consistent key bindings for similar actions across your application
+   - Consider industry standards for common operations (e.g., Ctrl+S for save)
+
+2. Discoverability:
+   - Use key hints to make shortcuts discoverable
+   - Provide a way for users to view all available key bindings
+   - Consider adding a help screen or cheat sheet
+
+3. Accessibility:
+   - Ensure all functionality is accessible via keyboard
+   - Provide alternative key bindings for complex combinations
+   - Consider users with mobility impairments
+
+4. Customization:
+   - Allow users to customize key bindings when possible
+   - Provide sensible defaults that work across platforms
+   - Document all available key bindings
+
+5. Conflict Management:
+   - Carefully design key binding schemes to avoid conflicts
+   - Use component-specific bindings for context-sensitive actions
+   - Test key bindings across different platforms
+
+Conclusion
+---------
+
+reterm's key binding system provides a flexible and powerful way to define
+keyboard shortcuts in your terminal applications. By separating key bindings
+from event handling logic, it allows for easy customization and ensures a
+consistent user experience across different platforms.

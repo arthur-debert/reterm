@@ -1,0 +1,260 @@
+Declarative UI System: General Notes
+================================
+
+reterm provides a powerful declarative approach to building terminal user
+interfaces using YAML configuration. This approach separates the UI definition
+from application logic, making applications more maintainable and easier to
+modify.
+
+Core Concept
+-----------
+
+The declarative UI system allows developers to define their entire user
+interface, including component hierarchy, layouts, styles, key bindings, and
+event handlers, using YAML configuration files. This approach offers several
+advantages:
+
+1. Separation of concerns: UI structure is separated from application logic
+2. Rapid iteration: Change the UI without modifying code
+3. Readability: YAML is easy to read and understand
+4. Consistency: Enforces a consistent approach to UI definition
+5. Reusability: UI components can be easily reused across applications
+
+Basic Structure
+-------------
+
+A typical reterm YAML configuration has these main sections:
+
+    app:
+      title: "My Terminal Application"
+      version: "1.0.0"
+      
+      # UI component tree
+      components:
+        # Component definitions
+      
+      # Color schemes
+      colors:
+        # Color definitions
+      
+      # Text labels (for internationalization)
+      labels:
+        # Label definitions
+      
+      # Key bindings
+      key_bindings:
+        # Key binding definitions
+
+Text Labels
+----------
+
+Labels allow for easy text customization and internationalization:
+
+    app:
+      labels:
+        # Common UI text
+        common:
+          ok: "OK"
+          cancel: "Cancel"
+          yes: "Yes"
+          no: "No"
+          save: "Save"
+          load: "Load"
+          error: "Error"
+          warning: "Warning"
+        
+        # Feature-specific text
+        file_operations:
+          new_file: "New File"
+          open_file: "Open File"
+          save_file: "Save File"
+          save_as: "Save As"
+          file_saved: "File saved successfully"
+          file_error: "Error saving file"
+        
+        # Help text
+        help:
+          welcome: "Welcome to My Application"
+          getting_started: "To get started, press Ctrl+N to create a new file"
+
+Labels are referenced in component definitions using a special syntax:
+
+    - type: Button
+      id: save_button
+      label: "@labels.common.save"  # References "Save" from labels
+
+This approach makes it easy to change all occurrences of a text string or
+implement internationalization by swapping label files.
+
+State Management
+--------------
+
+The declarative system includes basic state management:
+
+    app:
+      # Application state
+      state:
+        current_file: null
+        is_modified: false
+        search_query: ""
+        theme_mode: "dark"
+      
+      # State bindings
+      bindings:
+        - source: "state.current_file"
+          target: "main_window.title"
+          transform: "'Editor - ' + (value || 'Untitled')"
+        
+        - source: "state.is_modified"
+          target: "save_button.enabled"
+        
+        - source: "state.theme_mode"
+          target: "app.colors.theme"
+
+State bindings create reactive connections between application state and UI
+properties, automatically updating the UI when state changes.
+
+Conditional Rendering
+-------------------
+
+Components can be conditionally shown or configured based on state:
+
+    - type: Dialog
+      id: save_dialog
+      visible: "@state.show_save_dialog"
+      title: "Save Changes"
+      
+      children:
+        - type: Label
+          id: save_prompt
+          text: "Save changes to @state.current_file?"
+        
+        - type: HBox
+          id: button_container
+          children:
+            - type: Button
+              id: save_confirm
+              label: "Save"
+              on_press: "save_and_close"
+            
+            - type: Button
+              id: save_cancel
+              label: "Don't Save"
+              on_press: "close_without_saving"
+            
+            - type: Button
+              id: cancel_button
+              label: "Cancel"
+              on_press: "cancel_close"
+              visible: "@state.allow_cancel"
+
+This allows for dynamic UIs that respond to application state without requiring
+custom rendering code.
+
+Loading and Merging Configurations
+--------------------------------
+
+YAML configurations can be split across multiple files and merged:
+
+    # Main application configuration
+    app:
+      title: "My Application"
+      
+      # Include other configuration files
+      includes:
+        - components.yaml  # UI components
+        - colors.yaml      # Color schemes
+        - labels.yaml      # Text labels
+        - bindings.yaml    # Key bindings
+
+This modular approach makes it easier to manage large applications and reuse
+common configurations across multiple applications.
+
+Integration with Code
+-------------------
+
+While the declarative system allows for defining most of the UI in YAML, it
+seamlessly integrates with custom Python code:
+
+    # In your Python code
+    from reterm.app import App
+    from reterm.yaml import load_config
+    
+    # Load the YAML configuration
+    config = load_config("app.yaml")
+    
+    # Create the application
+    app = App(config)
+    
+    # Register event handlers
+    @app.handler("save_document")
+    def save_document(event):
+        # Implementation
+        filename = app.state.current_file
+        content = app.find_component_by_id("main_editor").content
+        with open(filename, "w") as f:
+            f.write(content)
+        app.state.is_modified = False
+    
+    # Run the application
+    app.run()
+
+The declarative system doesn't replace code entirely but rather separates UI
+structure from behavior, allowing each to be modified independently.
+
+Validation and Error Handling
+---------------------------
+
+reterm validates YAML configurations at load time to catch errors early:
+
+1. Schema validation ensures all required properties are present
+2. Type checking verifies property values have the correct types
+3. Reference validation ensures all referenced IDs, events, and functions exist
+4. Conflict detection identifies duplicate IDs and conflicting key bindings
+
+Validation errors include detailed information to help locate and fix issues:
+
+    Error in app.yaml, line 25, column 10:
+    Unknown component type 'Buttn'. Did you mean 'Button'?
+    
+    Error in components.yaml, line 42:
+    Duplicate component ID 'save_button'. IDs must be unique.
+    
+    Error in bindings.yaml, line 15:
+    Referenced state 'current_theme' does not exist. Available states: 
+    current_file, is_modified, search_query, theme_mode
+
+Best Practices
+------------
+
+1. Organization:
+   - Split large configurations into multiple files
+   - Group related components together
+   - Use consistent naming conventions for IDs
+
+2. Component Design:
+   - Keep component hierarchies shallow when possible
+   - Use templates for repeated patterns
+   - Prefer composition over complex individual components
+
+3. State Management:
+   - Keep state minimal and focused
+   - Use bindings rather than event handlers for UI updates
+   - Document the purpose of each state variable
+
+4. Performance:
+   - Be mindful of deep component nesting
+   - Limit the use of complex conditional expressions
+   - Use lazy loading for large configurations
+
+Conclusion
+---------
+
+reterm's declarative UI system provides a powerful way to define terminal user
+interfaces using YAML configuration. By separating UI structure from application
+logic, it makes applications more maintainable, easier to modify, and more
+consistent.
+
+The system's support for component hierarchies, styling, key bindings, event
+handling, and state management provides all the tools needed to create
+sophisticated terminal applications with minimal code.

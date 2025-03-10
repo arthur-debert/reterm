@@ -1,0 +1,560 @@
+Event Handlers
+=============
+
+reterm's declarative UI system provides a powerful way to define event handlers
+that connect UI events to application logic. This approach allows you to define
+simple interactions entirely in YAML, while still supporting complex behaviors
+through custom code.
+
+Basic Structure
+-------------
+
+Event handlers are defined as properties of components in your YAML
+configuration:
+
+    app:
+      components:
+        - type: Button
+          id: save_button
+          label: "Save"
+          on_press: "save_document"
+        
+        - type: TextInput
+          id: search_input
+          placeholder: "Search..."
+          on_change: "update_search_results"
+          on_submit: "perform_search"
+
+Each component type supports different event types. Common event types include:
+
+- on_press: Triggered when a button is pressed
+- on_change: Triggered when an input's value changes
+- on_select: Triggered when an item is selected from a list
+- on_focus: Triggered when a component receives focus
+- on_blur: Triggered when a component loses focus
+- on_key: Triggered when a key is pressed while the component has focus
+
+Handler Types
+-----------
+
+Event handlers can be defined in several ways:
+
+1. String Reference
+------------------
+
+The simplest form is a string reference to a function in the application:
+
+    on_press: "save_document"
+
+This references a function named `save_document` that must be registered with
+the application:
+
+    # In your Python code
+    @app.handler("save_document")
+    def save_document(event):
+        # Implementation
+        filename = app.state.current_file
+        content = app.find_component_by_id("main_editor").content
+        with open(filename, "w") as f:
+            f.write(content)
+        app.state.is_modified = False
+
+2. Inline Action
+--------------
+
+For simple actions, you can define an inline handler:
+
+    on_press:
+      action: "set_property"
+      component: "status_bar"
+      property: "text"
+      value: "Saving document..."
+
+This performs a specific action without requiring custom code. reterm provides
+several built-in actions:
+
+- set_property: Sets a property on a component
+- set_state: Updates application state
+- navigate: Changes the active screen or view
+- show_dialog: Displays a dialog
+- hide_dialog: Hides a dialog
+- call_function: Calls a registered function
+
+3. Action Sequence
+----------------
+
+For more complex interactions, you can define a sequence of actions:
+
+    on_press:
+      - action: "set_property"
+        component: "status_bar"
+        property: "text"
+        value: "Saving document..."
+      
+      - action: "call_function"
+        function: "save_document"
+      
+      - action: "set_property"
+        component: "status_bar"
+        property: "text"
+        value: "Document saved"
+
+This executes multiple actions in sequence, allowing for more sophisticated
+behaviors without custom code.
+
+4. Conditional Actions
+-------------------
+
+Actions can be conditionally executed based on expressions:
+
+    on_press:
+      - action: "set_property"
+        component: "status_bar"
+        property: "text"
+        value: "Saving document..."
+      
+      - action: "call_function"
+        function: "save_document"
+      
+      - if: "@state.save_successful"
+        then:
+          action: "set_property"
+          component: "status_bar"
+          property: "text"
+          value: "Document saved successfully"
+        else:
+          action: "set_property"
+          component: "status_bar"
+          property: "text"
+          value: "Error saving document"
+
+The `if` condition can reference application state or component properties.
+
+Built-in Actions
+--------------
+
+reterm provides several built-in actions for common operations:
+
+1. set_property
+--------------
+
+Sets a property on a component:
+
+    action: "set_property"
+    component: "status_bar"  # Component ID
+    property: "text"         # Property name
+    value: "Ready"           # New value
+
+You can also use expressions in the value:
+
+    action: "set_property"
+    component: "main_window"
+    property: "title"
+    value: "'Editor - ' + (@state.current_file || 'Untitled')"
+
+2. set_state
+-----------
+
+Updates application state:
+
+    action: "set_state"
+    state: "is_modified"     # State variable name
+    value: true              # New value
+
+You can update multiple state variables at once:
+
+    action: "set_state"
+    state:
+      is_modified: false
+      last_saved: "@now()"
+      save_count: "@state.save_count + 1"
+
+3. navigate
+---------
+
+Changes the active screen or view:
+
+    action: "navigate"
+    screen: "editor"         # Screen ID
+    params:                  # Optional parameters
+      file: "@state.selected_file"
+
+4. show_dialog / hide_dialog
+--------------------------
+
+Shows or hides a dialog:
+
+    action: "show_dialog"
+    dialog: "confirm_save"   # Dialog ID
+    params:                  # Optional parameters
+      filename: "@state.current_file"
+
+    action: "hide_dialog"
+    dialog: "confirm_save"   # Dialog ID
+
+5. call_function
+--------------
+
+Calls a registered function:
+
+    action: "call_function"
+    function: "save_document"  # Function name
+    args:                      # Optional arguments
+      filename: "@state.current_file"
+
+6. focus
+-------
+
+Sets focus to a specific component:
+
+    action: "focus"
+    component: "search_input"  # Component ID
+
+Event Object
+----------
+
+When an event handler is called, it receives an event object with information
+about the event:
+
+    @app.handler("button_clicked")
+    def handle_button_click(event):
+        print(f"Button clicked: {event.component.id}")
+        print(f"Event type: {event.type}")
+        print(f"Event data: {event.data}")
+
+The event object includes:
+
+- component: The component that triggered the event
+- type: The type of event (e.g., "press", "change", "select")
+- data: Additional data specific to the event type
+- timestamp: When the event occurred
+- propagation_stopped: Whether event propagation has been stopped
+
+You can stop event propagation to prevent it from bubbling up to parent
+components:
+
+    @app.handler("button_clicked")
+    def handle_button_click(event):
+        # Handle the event
+        # ...
+        
+        # Stop propagation
+        event.stop_propagation()
+
+Event Bubbling
+------------
+
+Events in reterm bubble up through the component hierarchy unless explicitly
+stopped. This means that if a component doesn't handle an event, its parent
+component gets a chance to handle it.
+
+For example, if a button inside a dialog doesn't handle a click event, the
+dialog itself can handle it:
+
+    components:
+      - type: Dialog
+        id: confirm_dialog
+        on_press: "handle_dialog_press"
+        children:
+          - type: Button
+            id: confirm_button
+            label: "Confirm"
+            on_press: "handle_confirm"
+          
+          - type: Button
+            id: cancel_button
+            label: "Cancel"
+            on_press: "handle_cancel"
+
+In this example:
+- Clicks on the confirm button trigger "handle_confirm"
+- Clicks on the cancel button trigger "handle_cancel"
+- Clicks elsewhere in the dialog trigger "handle_dialog_press"
+
+Event Delegation
+--------------
+
+For containers with many similar children (like list items), you can use event
+delegation instead of defining handlers for each child:
+
+    - type: List
+      id: todo_list
+      items:
+        - id: "task1"
+          text: "Buy groceries"
+        - id: "task2"
+          text: "Clean house"
+        - id: "task3"
+          text: "Pay bills"
+      on_item_press:
+        action: "call_function"
+        function: "toggle_task"
+        args:
+          task_id: "@event.item.id"
+
+This defines a single handler for all item presses, using the event data to
+determine which item was pressed.
+
+State-Based Handlers
+-----------------
+
+Handlers can be conditionally enabled based on application state:
+
+    - type: Button
+      id: save_button
+      label: "Save"
+      on_press: "save_document"
+      enabled: "@state.document_loaded"
+
+When `state.document_loaded` is `false`, the button is disabled and won't
+trigger its `on_press` handler.
+
+You can also use state in handler definitions:
+
+    on_press:
+      if: "@state.is_modified"
+      then: "save_document"
+      else: "show_message"
+
+This executes different actions depending on the application state.
+
+Custom Event Types
+---------------
+
+In addition to the built-in event types, you can define custom events:
+
+    # In your Python code
+    app.register_event("document_loaded")
+    
+    # Later, emit the event
+    app.emit("document_loaded", filename="example.txt")
+
+Components can listen for these custom events:
+
+    - type: StatusBar
+      id: status_bar
+      on_document_loaded:
+        action: "set_property"
+        property: "text"
+        value: "Loaded: @event.data.filename"
+
+This allows for application-specific events that components can react to.
+
+Asynchronous Handlers
+------------------
+
+For long-running operations, you can use asynchronous handlers:
+
+    @app.handler("save_document", async=True)
+    async def save_document(event):
+        # Show a loading indicator
+        app.find_component_by_id("status_bar").text = "Saving..."
+        
+        # Perform the operation asynchronously
+        await async_save_file(app.state.current_file, app.state.content)
+        
+        # Update the UI when done
+        app.state.is_modified = False
+        app.find_component_by_id("status_bar").text = "Saved"
+
+Asynchronous handlers don't block the UI while they're running, ensuring the
+application remains responsive.
+
+Error Handling
+------------
+
+reterm provides several ways to handle errors in event handlers:
+
+1. Try-Catch in Action Sequences:
+
+    on_press:
+      - action: "try"
+        try:
+          - action: "call_function"
+            function: "save_document"
+        catch:
+          - action: "set_property"
+            component: "status_bar"
+            property: "text"
+            value: "Error: @error.message"
+
+2. Error Handlers in Python Code:
+
+    @app.handler("save_document")
+    def save_document(event):
+        try:
+            # Implementation
+            filename = app.state.current_file
+            with open(filename, "w") as f:
+                f.write(app.state.content)
+            app.state.is_modified = False
+        except Exception as e:
+            app.find_component_by_id("status_bar").text = f"Error: {str(e)}"
+            return False  # Indicate failure
+        
+        return True  # Indicate success
+
+3. Global Error Handler:
+
+    @app.error_handler
+    def handle_error(error, event):
+        app.find_component_by_id("status_bar").text = f"Error: {str(error)}"
+        app.log.error(f"Error handling event {event.type}: {str(error)}")
+
+Debugging Handlers
+---------------
+
+reterm provides tools for debugging event handlers:
+
+1. Event Logging:
+
+    app:
+      logging:
+        events: true  # Log all events
+        handlers: true  # Log handler execution
+
+2. Handler Tracing:
+
+    @app.handler("save_document", trace=True)
+    def save_document(event):
+        # Implementation
+        pass
+
+3. Interactive Debugging:
+
+    app:
+      debug:
+        break_on_events: ["save_document"]  # Break into debugger when this event occurs
+
+Example: Form Validation
+---------------------
+
+Here's a comprehensive example of event handlers for form validation:
+
+    components:
+      - type: Form
+        id: registration_form
+        children:
+          - type: TextInput
+            id: username_input
+            label: "Username"
+            placeholder: "Enter username"
+            on_change:
+              action: "call_function"
+              function: "validate_username"
+              args:
+                value: "@event.data.value"
+          
+          - type: TextInput
+            id: email_input
+            label: "Email"
+            placeholder: "Enter email"
+            on_change:
+              action: "call_function"
+              function: "validate_email"
+              args:
+                value: "@event.data.value"
+          
+          - type: PasswordInput
+            id: password_input
+            label: "Password"
+            placeholder: "Enter password"
+            on_change:
+              action: "call_function"
+              function: "validate_password"
+              args:
+                value: "@event.data.value"
+          
+          - type: Button
+            id: submit_button
+            label: "Register"
+            enabled: "@state.form_valid"
+            on_press:
+              action: "call_function"
+              function: "submit_registration"
+
+    # In your Python code
+    @app.handler("validate_username")
+    def validate_username(event, value):
+        if len(value) < 3:
+            app.find_component_by_id("username_input").error = "Username must be at least 3 characters"
+            app.state.username_valid = False
+        else:
+            app.find_component_by_id("username_input").error = None
+            app.state.username_valid = True
+        
+        update_form_validity()
+    
+    @app.handler("validate_email")
+    def validate_email(event, value):
+        if "@" not in value:
+            app.find_component_by_id("email_input").error = "Invalid email address"
+            app.state.email_valid = False
+        else:
+            app.find_component_by_id("email_input").error = None
+            app.state.email_valid = True
+        
+        update_form_validity()
+    
+    @app.handler("validate_password")
+    def validate_password(event, value):
+        if len(value) < 8:
+            app.find_component_by_id("password_input").error = "Password must be at least 8 characters"
+            app.state.password_valid = False
+        else:
+            app.find_component_by_id("password_input").error = None
+            app.state.password_valid = True
+        
+        update_form_validity()
+    
+    def update_form_validity():
+        app.state.form_valid = (
+            app.state.username_valid and
+            app.state.email_valid and
+            app.state.password_valid
+        )
+    
+    @app.handler("submit_registration")
+    def submit_registration(event):
+        # Process the registration
+        username = app.find_component_by_id("username_input").value
+        email = app.find_component_by_id("email_input").value
+        password = app.find_component_by_id("password_input").value
+        
+        # Submit to backend, etc.
+        # ...
+
+Best Practices
+------------
+
+1. Handler Organization:
+   - Keep handlers focused on a single responsibility
+   - Use action sequences for simple operations
+   - Use Python functions for complex logic
+   - Group related handlers together
+
+2. State Management:
+   - Use state for conditional rendering and enabling/disabling
+   - Update state in handlers to trigger UI updates
+   - Keep state minimal and focused
+
+3. Error Handling:
+   - Always handle potential errors in handlers
+   - Provide clear feedback to users when errors occur
+   - Log errors for debugging
+
+4. Performance:
+   - Keep handlers lightweight
+   - Use asynchronous handlers for long-running operations
+   - Avoid excessive state updates that trigger re-renders
+
+Conclusion
+---------
+
+reterm's event handling system provides a flexible and powerful way to connect
+UI events to application logic. By supporting both declarative handlers in YAML
+and custom functions in Python, it allows for a wide range of interactions from
+simple property updates to complex application behaviors.
+
+The combination of event bubbling, delegation, and custom events makes it
+possible to create sophisticated user interfaces with clean, maintainable code.

@@ -1,0 +1,194 @@
+UI Toolkit
+=========
+
+The UI Toolkit is the core of reterm's component system, providing a consistent and reactive approach to building terminal user interfaces. It follows a component-based architecture that will be familiar to developers who have worked with modern web frameworks.
+
+Core Component Hierarchy
+-----------------------
+
+reterm's UI components are organized in a hierarchical structure:
+
+- Component (base class)
+  - Item (for single UI elements)
+    - Button
+    - Input (TextInput, NumericInput)
+    - ProgressIndicator
+  - Container (for elements that can contain other elements)
+    - Window
+    - Dialog
+    - List Container
+    - Table
+    - NavBar
+
+Component Base Class
+-------------------
+
+The Component class is the foundation of all UI elements in reterm. It provides:
+
+1. Core Properties
+   - _id_: Unique identifier for the component
+   - _parent_: Reference to the parent container
+   - _min_size/max_size_: Size constraints for layout
+   - _visible_: Controls component visibility
+   - _enabled_: Controls whether the component can receive input
+   - _style_: Visual styling properties
+
+2. Event Handling
+   - Components can register event handlers for keyboard, focus, and custom events
+   - Events bubble up the component tree unless explicitly stopped
+   - Components can emit custom events that propagate to parent containers
+
+3. Lifecycle Hooks
+   - _init_: Called when the component is first created
+   - _mount_: Called when the component is added to the UI tree
+   - _update_: Called when the component's state changes
+   - _unmount_: Called when the component is removed from the UI tree
+
+4. Layout Integration
+   - Components work with the layout engine to determine their size and position
+   - They provide size hints (_min_size_, _max_size_) to the layout manager
+   - They receive their allocated size and position from their parent
+
+Item Class
+---------
+
+Items are the simplest form of UI components - they represent single, atomic UI elements that don't contain other components.
+
+1. Characteristics
+   - Self-contained UI elements with a single responsibility
+   - Handle their own rendering and input processing
+   - Typically have a fixed or constrained size
+   - Focus on a specific interaction (e.g., button press, text input)
+
+2. Core Functionality
+   - Render themselves based on their current state
+   - Process input events relevant to their function
+   - Emit events when their state changes
+   - Update their visual appearance based on state (focused, pressed, etc.)
+
+3. Common Item Types
+   - _Button_: Triggers an action when activated
+   - _Input_: Accepts and manages text or numeric input
+   - _ProgressIndicator_: Displays progress of an operation
+   - _Label_: Displays static or dynamic text
+
+4. Example: Button Implementation
+
+    - type: Button
+      id: save_button
+      label: "Save"
+      on_press: save_data
+      min_size: [10, 1]
+      max_size: [20, 1]
+      style:
+        focused: "reverse"
+        disabled: "dim"
+    
+
+Container Class
+--------------
+
+Containers are components that can hold and manage other components (both Items and other Containers).
+
+1. Characteristics
+   - Manage a collection of child components
+   - Handle layout and positioning of children
+   - Propagate events to appropriate children
+   - Coordinate focus management among children
+
+2. Child Management
+   - _add_child(component)_: Add a component to the container
+   - _remove_child(component)_: Remove a component from the container
+   - _get_child(id)_: Retrieve a child by ID
+   - _children_: Access the list of all children
+
+3. Layout Management
+   - Containers work with the layout engine to allocate space to children
+   - They respect each child's min_size and max_size constraints
+   - They handle overflow with scrolling when necessary
+   - They manage the positioning of children within their bounds
+
+4. Event Propagation
+   - Containers receive events and determine which child should handle them
+   - They manage focus traversal between children
+   - They bubble events up the component hierarchy when appropriate
+
+5. Common Container Types
+   - _Window_: Top-level container with borders and title
+   - _Dialog_: Modal container for focused interactions
+   - _List_: Vertical arrangement of items, potentially scrollable
+   - _Table_: Grid-based layout for tabular data
+   - _NavBar_: Horizontal arrangement of navigation items
+
+6. Example: Dialog Implementation
+
+    - type: Dialog
+      id: confirm_dialog
+      title: "Confirm Action"
+      min_size: [40, 10]
+      children:
+        - type: Label
+          id: message
+          text: "Are you sure you want to proceed?"
+          min_size: [30, 1]
+        - type: HBox
+          id: button_container
+          children:
+            - type: Button
+              id: confirm_button
+              label: "Yes"
+              on_press: confirm_action
+            - type: Button
+              id: cancel_button
+              label: "No"
+              on_press: close_dialog
+    
+
+Component Relationships
+---------------------
+
+1. Parent-Child Relationships
+   - Each component (except the root) has exactly one parent
+   - Parents maintain references to their children
+   - Children have a reference to their parent
+   - The component tree forms a directed acyclic graph
+
+2. Event Flow
+   - Events typically flow from the system to the focused component
+   - If the focused component doesn't handle the event, it bubbles up to its parent
+   - Some events (like resize) propagate down from containers to their children
+   - Custom events can be emitted by any component and captured by listeners
+
+3. State Propagation
+   - Components can share state with their children
+   - State changes trigger updates in affected components
+   - The reactive system ensures that UI updates reflect the current state
+
+Guidelines and Best Practices
+---------------------------
+
+1. Component Selection
+   - Use Items for atomic, self-contained UI elements
+   - Use Containers when you need to group related components
+   - Nest containers to create complex layouts
+   - Keep component hierarchies as shallow as possible for performance
+
+2. Component Composition
+   - Compose complex UIs from simple components
+   - Create custom components by extending existing ones
+   - Use composition over inheritance when possible
+   - Reuse components to maintain consistency
+
+3. Performance Considerations
+   - Minimize the number of components for better performance
+   - Use lazy rendering for large collections
+   - Optimize update cycles by minimizing state changes
+   - Use appropriate container types for your layout needs
+
+4. Accessibility
+   - Ensure all interactive elements can be accessed via keyboard
+   - Provide clear focus indicators
+   - Use consistent navigation patterns
+   - Consider color contrast for readability
+
+The UI Toolkit is designed to be intuitive yet powerful, providing a consistent way to build complex terminal interfaces while leveraging the reactive programming model. By following the component hierarchy and best practices, developers can create responsive, maintainable terminal applications with reterm.

@@ -1,0 +1,283 @@
+Text Rendering
+=============
+
+reterm provides a powerful text rendering system that can generate visual
+representations of terminal screens in multiple formats. This feature is
+particularly useful for documentation, testing, and exporting terminal
+interfaces to other mediums.
+
+Overview
+-------
+
+The text rendering system allows you to capture the current state of any screen
+or component and render it in different formats:
+
+1. Plain text (ASCII): Simple representation using only standard ASCII
+   characters, suitable for logs, documentation, and text-only environments.
+
+2. HTML: Rich representation with full color support, useful for web
+   documentation, reports, and visual debugging.
+
+This multi-format approach ensures that terminal interfaces can be accurately
+represented in various contexts beyond the terminal itself.
+
+Core Concepts
+-----------
+
+The text rendering system is built around these core concepts:
+
+1. Renderers: Specialized classes that convert terminal screen content to
+   specific output formats.
+
+2. Render Context: Contains information about the rendering environment,
+   including dimensions, color support, and output preferences.
+
+3. Render Targets: The destination for rendered output, which could be a file,
+   string buffer, or other output stream.
+
+4. Style Mapping: Rules for converting terminal styles (colors, attributes) to
+   the target format's equivalent.
+
+Basic Usage
+---------
+
+Capturing and rendering a screen is straightforward:
+
+    # Get a renderer for the desired format
+    from reterm.render import TextRenderer, HtmlRenderer
+    
+    # Create a plain text renderer
+    text_renderer = TextRenderer()
+    
+    # Render the current screen to a string
+    ascii_output = text_renderer.render(app.current_screen)
+    
+    # Print or save the output
+    print(ascii_output)
+    
+    # Or use HTML renderer for rich output
+    html_renderer = HtmlRenderer()
+    html_output = html_renderer.render(app.current_screen)
+    
+    # Save to a file
+    with open("screen_capture.html", "w") as f:
+        f.write(html_output)
+
+Plain Text Rendering
+------------------
+
+The plain text renderer produces ASCII representations of terminal screens,
+using standard characters to approximate the visual appearance of the interface.
+
+Features:
+
+1. Box Drawing: Uses ASCII characters (-, |, +) to represent UI borders and
+   dividers.
+
+2. Text Content: Preserves all text content exactly as it appears in the
+   terminal.
+
+3. Spacing: Maintains proper spacing and alignment of UI elements.
+
+4. Attribute Approximation: Approximates terminal attributes like bold or
+   underline using available ASCII techniques (e.g., * for bold, _ for
+   underline).
+
+Example output:
+
+    +----------------------+
+    | File Browser         |
+    +----------------------+
+    | > Documents/         |
+    |   Pictures/          |
+    |   Music/             |
+    |   Downloads/         |
+    |                      |
+    +----------------------+
+    | [Open] [Cancel]      |
+    +----------------------+
+
+Configuration options:
+
+    text_renderer = TextRenderer(
+        use_unicode=False,      # Stick to ASCII only
+        width=80,               # Maximum width
+        preserve_colors=False,  # Don't attempt to represent colors
+        show_cursor=True        # Show cursor position
+    )
+
+HTML Rendering
+------------
+
+The HTML renderer produces rich representations of terminal screens, with full
+support for colors, styles, and precise layout.
+
+Features:
+
+1. ANSI Color Mapping: Maps terminal ANSI colors to equivalent HTML/CSS colors.
+
+2. Style Preservation: Accurately represents terminal styles like bold, italic,
+   underline, and reverse video.
+
+3. Layout Fidelity: Preserves exact spacing and alignment using monospace fonts
+   and CSS.
+
+4. Interactive Elements: Optionally includes CSS classes that can be used for
+   interactive documentation.
+
+Example output:
+
+    <div class="reterm-screen">
+      <div class="reterm-window">
+        <div class="reterm-title">File Browser</div>
+        <div class="reterm-content">
+          <div class="reterm-line">
+            <span class="reterm-highlight">&gt; Documents/</span>
+          </div>
+          <div class="reterm-line">
+            <span>  Pictures/</span>
+          </div>
+          <!-- More content lines -->
+        </div>
+        <div class="reterm-footer">
+          <span class="reterm-button">Open</span>
+          <span class="reterm-button">Cancel</span>
+        </div>
+      </div>
+    </div>
+
+Configuration options:
+
+    html_renderer = HtmlRenderer(
+        include_css=True,       # Include embedded CSS
+        dark_theme=True,        # Use dark theme colors
+        interactive=False,      # Don't include interactive elements
+        show_cursor=True,       # Show cursor position
+        color_scheme="solarized" # Use specific color scheme
+    )
+
+Custom Renderers
+--------------
+
+reterm allows you to create custom renderers for additional output formats by
+implementing the BaseRenderer interface:
+
+    from reterm.render import BaseRenderer
+    
+    class MarkdownRenderer(BaseRenderer):
+        def render(self, screen, context=None):
+            # Implementation to convert screen to Markdown
+            # ...
+            return markdown_output
+
+This extensibility enables integration with various documentation systems,
+reporting tools, or custom visualization needs.
+
+Rendering Components
+-----------------
+
+While rendering entire screens is common, you can also render individual
+components:
+
+    # Render just a specific component
+    button_html = html_renderer.render(app.find_component_by_id("save_button"))
+    
+    # Render a container and all its children
+    dialog_html = html_renderer.render(app.find_component_by_id("confirm_dialog"))
+
+This granular approach is useful for documenting specific UI elements or
+creating focused test assertions.
+
+Practical Applications
+-------------------
+
+1. Documentation:
+   - Generate visual examples for user manuals
+   - Create screenshots for README files and online documentation
+   - Produce HTML documentation with accurate visual representations
+
+2. Testing:
+   - Capture screen state for visual regression testing
+   - Create snapshots to compare against expected output
+   - Generate test reports with visual context
+
+3. Debugging:
+   - Capture and examine screen state at specific points in execution
+   - Share visual representations of bugs for easier troubleshooting
+   - Log visual state during complex operations
+
+4. Export and Integration:
+   - Export terminal interfaces to web applications
+   - Include terminal output in reports and dashboards
+   - Archive visual state of applications for record-keeping
+
+Implementation Details
+-------------------
+
+1. Rendering Pipeline:
+
+   a. Capture: The renderer captures the current state of the screen or
+      component, including all text content, styles, and layout information.
+   
+   b. Transform: The captured state is transformed into an intermediate
+      representation that's format-agnostic.
+   
+   c. Format: The intermediate representation is converted to the target format
+      according to format-specific rules.
+   
+   d. Output: The formatted result is returned or written to the specified
+      target.
+
+2. Style Mapping:
+
+   Terminal styles are mapped to the target format using a style mapping
+   configuration. For example:
+   
+   - ANSI color 31 (red) → HTML: <span style="color: #ff0000">
+   - Bold text → HTML: <span style="font-weight: bold">
+   - Underlined text → ASCII: Surrounded by underscores (_text_)
+
+3. Layout Preservation:
+
+   The rendering system carefully preserves layout by:
+   
+   - Using monospace fonts in HTML output
+   - Maintaining exact spacing with non-breaking spaces where needed
+   - Preserving line breaks and indentation
+   - Accounting for double-width characters (like CJK)
+
+Best Practices
+------------
+
+1. Rendering for Documentation:
+   - Use HTML rendering for online documentation
+   - Include CSS for consistent styling
+   - Consider using dark theme for terminal-like appearance
+
+2. Rendering for Testing:
+   - Use plain text rendering for test assertions (easier to compare)
+   - Create baseline renders for comparison
+   - Focus on rendering specific components rather than entire screens
+
+3. Performance Considerations:
+   - Rendering large screens can be resource-intensive
+   - Cache renders when appropriate
+   - Consider asynchronous rendering for large outputs
+
+4. Accessibility:
+   - Include proper alt text when embedding renders in documentation
+   - Ensure color contrasts meet accessibility standards
+   - Provide text alternatives for visual representations
+
+Conclusion
+---------
+
+reterm's text rendering system provides a flexible way to capture and represent
+terminal interfaces in multiple formats. Whether for documentation, testing, or
+integration with other systems, the ability to accurately render screens as
+plain text or HTML opens up numerous possibilities for working with terminal
+interfaces beyond the terminal itself.
+
+By supporting both simple ASCII output and rich HTML rendering, reterm ensures
+that terminal applications can be effectively represented in any context,
+bridging the gap between terminal interfaces and other mediums.

@@ -1,0 +1,377 @@
+Logging System
+=============
+
+reterm provides a comprehensive logging system that helps developers debug,
+monitor, and analyze their terminal applications. Built on top of Python's
+standard logging module, reterm's logging system adds UI-specific features and
+integrates seamlessly with the event system.
+
+Design Goals
+----------
+
+The logging system is designed with these goals in mind:
+
+1. Minimal Overhead: Logging should have minimal impact on application
+   performance, especially when logs are disabled.
+
+2. Configurability: Developers should be able to easily configure logging
+   behavior through YAML configuration.
+
+3. Integration: The logging system should integrate with reterm's event system
+   to automatically log UI events.
+
+4. Flexibility: Support multiple output formats and destinations to accommodate
+   different debugging and monitoring needs.
+
+5. Context-Awareness: Logs should include relevant context about the UI state
+   to make debugging easier.
+
+Core Components
+-------------
+
+The logging system consists of these core components:
+
+1. Logger: The main interface for logging messages, based on Python's standard
+   logging.Logger class.
+
+2. Handlers: Determine where log messages are sent (console, file, etc.).
+
+3. Formatters: Control how log messages are formatted.
+
+4. Filters: Determine which log messages are processed.
+
+5. Log Records: Individual log entries with metadata about the event.
+
+6. UI Context Providers: Special components that add UI-specific context to
+   log records.
+
+Basic Configuration
+-----------------
+
+Logging can be configured through the application's YAML configuration:
+
+    logging:
+      level: INFO                # Global log level
+      format: "{time} {level} {message}"  # Log format
+      outputs:
+        - type: console          # Log to console
+          level: INFO            # Console-specific level
+        - type: file             # Log to file
+          path: "app.log"        # Log file path
+          level: DEBUG           # File-specific level
+          max_size: 10MB         # Maximum log file size
+          backup_count: 5        # Number of backup files to keep
+
+Basic Usage
+---------
+
+Using the logging system in your application is straightforward:
+
+    from reterm.app import App
+    from reterm.logging import get_logger
+    
+    # Get a logger for a specific module
+    logger = get_logger(__name__)
+    
+    # Log messages at different levels
+    logger.debug("Detailed debugging information")
+    logger.info("General information")
+    logger.warning("Warning message")
+    logger.error("Error message")
+    logger.critical("Critical error")
+    
+    # Log with additional context
+    logger.info("User selected item", extra={"item_id": "123", "item_name": "Example"})
+
+Log Levels
+---------
+
+reterm uses standard Python logging levels:
+
+1. DEBUG (10): Detailed information, typically useful only for diagnosing
+   problems.
+
+2. INFO (20): Confirmation that things are working as expected.
+
+3. WARNING (30): Indication that something unexpected happened, or may happen
+   in the near future.
+
+4. ERROR (40): Due to a more serious problem, the software has not been able to
+   perform some function.
+
+5. CRITICAL (50): A serious error, indicating that the program itself may be
+   unable to continue running.
+
+You can also define custom log levels if needed:
+
+    from reterm.logging import add_log_level
+    
+    # Add a custom log level
+    add_log_level("TRACE", 5)  # Lower than DEBUG
+    
+    # Now you can use it
+    logger.trace("Very detailed tracing information")
+
+UI Event Logging
+--------------
+
+reterm automatically logs UI events when enabled. This provides valuable
+insight into user interactions and application behavior:
+
+    logging:
+      ui_events:
+        enabled: true            # Enable UI event logging
+        level: DEBUG             # Level for UI events
+        include:                 # Event types to include
+          - key_press
+          - mouse_click
+          - focus_change
+          - component_update
+        exclude: []              # Event types to exclude
+
+Example of automatic UI event logs:
+
+    2023-06-15 14:32:10 DEBUG [UI] KeyPress: Ctrl+S (component: editor)
+    2023-06-15 14:32:12 DEBUG [UI] MouseClick: (10, 15) (component: button_save)
+    2023-06-15 14:32:15 DEBUG [UI] FocusChange: editor -> file_browser
+
+Component-Specific Logging
+------------------------
+
+Components can have their own logging configuration:
+
+    logging:
+      components:
+        editor:
+          level: DEBUG           # More detailed logging for editor
+        file_browser:
+          level: INFO            # Less detailed for file browser
+
+This allows for focused debugging of specific components without overwhelming
+the logs with information from other parts of the application.
+
+Contextual Logging
+----------------
+
+reterm's logging system automatically includes relevant context with log
+records:
+
+1. Component Information:
+   - Component ID and type
+   - Component state (focused, enabled, visible)
+   - Component hierarchy path
+
+2. Application State:
+   - Current screen
+   - Active modal dialogs
+   - Application mode
+
+3. User Interaction:
+   - Recent key presses
+   - Recent mouse actions
+   - Focus history
+
+Example of contextual log output:
+
+    2023-06-15 14:35:22 ERROR [editor] Failed to save file
+    Component: editor (TextEditor)
+    Path: app > main_window > content_area > editor
+    State: focused=True, enabled=True, visible=True
+    File: /home/user/documents/example.txt
+    Error: Permission denied
+
+Log Formatters
+------------
+
+reterm provides several built-in formatters:
+
+1. Simple: Basic format with timestamp, level, and message.
+   
+   Example: `2023-06-15 14:32:10 INFO User logged in`
+
+2. Detailed: Includes additional context like component, file, and line number.
+   
+   Example: `2023-06-15 14:32:10 INFO [main.py:45] [LoginScreen] User logged in`
+
+3. JSON: Structured format for machine processing.
+   
+   Example: `{"timestamp": "2023-06-15T14:32:10", "level": "INFO", "message": "User logged in", "component": "LoginScreen"}`
+
+4. Custom: Define your own format using a format string.
+
+   Example:
+   
+       logging:
+         format: "{time} | {level:8} | {component:15} | {message}"
+
+Log Destinations
+--------------
+
+Logs can be sent to multiple destinations:
+
+1. Console: Output to stderr or a specific terminal window.
+
+2. File: Write to a log file with rotation support.
+
+3. Memory: Keep logs in memory for in-application viewing.
+
+4. Syslog: Send logs to the system logger.
+
+5. Network: Send logs to a remote logging server.
+
+6. Custom: Implement your own log handler for special needs.
+
+Example configuration with multiple destinations:
+
+    logging:
+      outputs:
+        - type: console
+          level: INFO
+        - type: file
+          path: "app.log"
+          level: DEBUG
+        - type: memory
+          max_records: 1000
+          level: DEBUG
+
+In-Application Log Viewer
+-----------------------
+
+reterm includes an optional in-application log viewer component:
+
+    from reterm.components import LogViewer
+    
+    # Create a log viewer
+    log_viewer = LogViewer(
+        max_lines=500,           # Maximum lines to display
+        level=logging.DEBUG,     # Minimum level to display
+        auto_scroll=True,        # Automatically scroll to new logs
+        filter_pattern=None      # Optional regex filter
+    )
+    
+    # Add it to your application
+    app.add_component(log_viewer)
+
+This allows users to view logs without leaving the application, which is
+particularly useful for debugging and support scenarios.
+
+Performance Considerations
+------------------------
+
+Logging can impact application performance, especially with high-volume logs.
+reterm provides several features to minimize this impact:
+
+1. Lazy Evaluation: Context providers only gather information when a message is
+   actually logged at a level that will be processed.
+
+2. Buffered Output: Log writes are buffered to minimize I/O operations.
+
+3. Asynchronous Logging: Optional asynchronous mode that moves logging
+   operations off the main thread.
+
+4. Sampling: For high-volume events, you can configure sampling to log only a
+   percentage of occurrences.
+
+Example of performance optimization:
+
+    logging:
+      async: true               # Enable asynchronous logging
+      buffer_size: 100          # Buffer up to 100 messages before writing
+      sampling:
+        mouse_move: 0.1         # Log only 10% of mouse move events
+
+Debugging Tools
+-------------
+
+Beyond basic logging, reterm provides specialized debugging tools:
+
+1. Log Markers: Insert named markers in the log stream to help identify
+   specific points in execution.
+
+   Example: `logger.marker("Before file save operation")`
+
+2. Timing: Measure and log the duration of operations.
+
+   Example:
+   
+       with logger.timing("file_save"):
+           save_file()
+       # Logs: "Operation 'file_save' took 235ms"
+
+3. State Dumps: Log the complete state of a component or the application.
+
+   Example: `logger.dump_state(app.find_component_by_id("editor"))`
+
+4. Conditional Breakpoints: Configure logging to pause execution (if in debug
+   mode) when specific conditions are met.
+
+   Example:
+   
+       logging:
+         breakpoints:
+           - condition: "error and component == 'file_browser'"
+             message: "Breaking on file browser errors"
+
+Integration with External Tools
+-----------------------------
+
+reterm's logging system is designed to integrate with external tools:
+
+1. Log Aggregation: Compatible with common log aggregation systems like ELK
+   (Elasticsearch, Logstash, Kibana) and Graylog.
+
+2. Monitoring: Can send metrics to monitoring systems like Prometheus.
+
+3. Crash Reporting: Integrates with error tracking services to automatically
+   report exceptions with full context.
+
+4. Development Tools: IDE integration for real-time log viewing and analysis.
+
+Configuration example for external integration:
+
+    logging:
+      outputs:
+        - type: elasticsearch
+          host: "logs.example.com"
+          port: 9200
+          index: "reterm-logs"
+
+Best Practices
+------------
+
+1. Log Level Selection:
+   - Use DEBUG for detailed troubleshooting
+   - Use INFO for general operational information
+   - Use WARNING for unexpected but non-critical issues
+   - Use ERROR for failures that affect functionality
+   - Use CRITICAL for application-threatening issues
+
+2. Message Content:
+   - Be specific and descriptive
+   - Include relevant values but avoid sensitive data
+   - Use structured logging for machine-parseable information
+   - Keep messages concise but informative
+
+3. Performance:
+   - Use conditional logging for expensive operations
+   - Consider sampling for high-frequency events
+   - Enable async logging for production environments
+   - Regularly rotate and archive log files
+
+4. Security:
+   - Never log passwords or security tokens
+   - Be cautious with personally identifiable information
+   - Consider log encryption for sensitive environments
+   - Implement proper log file permissions
+
+Conclusion
+---------
+
+reterm's logging system provides a powerful foundation for debugging,
+monitoring, and analyzing terminal applications. By combining Python's standard
+logging capabilities with UI-specific features, it offers developers the tools
+they need to understand application behavior and quickly resolve issues.
+
+The flexible configuration, multiple output options, and integration with the
+event system make it adaptable to a wide range of use cases, from development
+debugging to production monitoring.

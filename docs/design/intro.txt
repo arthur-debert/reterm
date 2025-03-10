@@ -23,7 +23,7 @@ reterm manages window resizes and responsive layout, supporting layout container
 
 Layout management is a hard problem to solve, and to fit a simple implementation is it less flexible then css flex model, but it's probably enough for most shell apps.
 
-More: features/layout.txt
+More: See features/layout.txt for detailed documentation.
 
 2. Text Rendering
 
@@ -33,6 +33,8 @@ A text rendering engine that can render to:
 - Plain text viewers
 
 This makes it easy to create rich text interfaces and export them to different formats.
+
+More: See features/text.renderring.txt for detailed documentation.
 
 3. UI Toolkit
 
@@ -51,6 +53,8 @@ A focused but useful core of UI elements:
 - Sortable tables
 
 Each component follows consistent patterns and integrates with the reactive system.
+
+More: See features/ui-toolkit.txt for detailed documentation.
 
 Developer Experience
 ---------------------
@@ -80,6 +84,8 @@ app:
       label: "Username"
 ```
 
+More: See features/declarative/ directory for detailed documentation on components, keybindings, colors, and event handlers.
+
 2. Testing and Debugging Tools
 
 reterm provides comprehensive tools for testing and debugging your applications:
@@ -98,7 +104,7 @@ Both these APIs can be accessed:
 
 This enables powerful debugging and automation capabilities.
 
-See: features/controling.txt
+More: See features/controling.txt for detailed documentation.
 
 4. Logging and Event Handling
 
@@ -107,6 +113,15 @@ See: features/controling.txt
 - reterm uses blinker, the awesome library for broadcast and signaling in Python
 - All events are handled in the main app and dispatched from there, giving you logging and various other handy tools for free
 
+More: See features/logging.txt and features/event-handling.txt for detailed documentation.
+
+5. Keypress Handling
+
+- Configurable key bindings defined in YAML
+- Separation of key bindings from event handling logic
+- Platform normalization for consistent behavior across operating systems
+
+More: See features/keypress-handling.txt for detailed documentation.
 
 For more information, examples, and documentation, visit:
 https://github.com/arthut-debert/reterm

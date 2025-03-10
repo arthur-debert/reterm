@@ -1,0 +1,248 @@
+Event Handling
+=============
+
+reterm uses a robust event handling system based on the Python library blinker.
+This system enables components to communicate with each other through events
+without tight coupling, following the observer pattern.
+
+Core Concepts
+------------
+
+The event handling system in reterm is built around these core concepts:
+
+1. Events: Named signals that carry information about something that happened
+2. Event Emitters: Components that generate events
+3. Event Listeners: Components that respond to events
+4. Event Propagation: How events flow through the component hierarchy
+
+The App class serves as the central hub for event management, providing methods
+for registering, emitting, and handling events throughout the application.
+
+Blinker Integration
+-----------------
+
+reterm leverages the blinker library to implement its event system. Blinker
+provides a lightweight and efficient implementation of the observer pattern,
+which is ideal for event-driven applications.
+
+Key features of blinker that reterm utilizes:
+
+- Named signals: Events are identified by string names
+- Weak references: Prevents memory leaks when components are destroyed
+- Sender filtering: Listeners can filter events based on the sender
+- Decorator syntax: Easy registration of event handlers
+
+The App Class
+-----------
+
+The App class is the foundation of event handling in reterm. It provides:
+
+1. Event Registration:
+   - Methods to register event listeners
+   - Support for component-specific and global events
+
+2. Event Emission:
+   - Methods to emit events from any component
+   - Automatic propagation through the component hierarchy
+
+3. Event Coordination:
+   - Centralized event logging
+   - Event filtering and transformation
+
+Basic Usage
+----------
+
+Here's how event handling works in a typical reterm application:
+
+1. Defining Events:
+
+    # In your application code
+    from reterm.app import App
+    
+    # Define your application class
+    class MyApp(App):
+        def __init__(self):
+            super().__init__()
+            
+            # Define application events
+            self.register_event("save_document")
+            self.register_event("document_changed")
+            self.register_event("application_exit")
+
+2. Registering Event Listeners:
+
+    # Using method reference
+    def on_document_changed(sender, **kwargs):
+        print(f"Document changed: {kwargs.get('document_name')}")
+    
+    app.on("document_changed", on_document_changed)
+    
+    # Using decorator syntax
+    @app.on("save_document")
+    def handle_save(sender, **kwargs):
+        print(f"Saving document: {kwargs.get('document_name')}")
+
+3. Emitting Events:
+
+    # Emit an event from anywhere in your application
+    app.emit("document_changed", document_name="example.txt", changes=5)
+
+Event Propagation
+---------------
+
+Events in reterm propagate through the component hierarchy following these rules:
+
+1. Component-specific events are first delivered to the component that emitted
+   them.
+
+2. If the component doesn't handle the event or explicitly allows propagation,
+   the event bubbles up to the parent component.
+
+3. This continues until either:
+   - A component handles the event and stops propagation
+   - The event reaches the root App component
+   - No handlers are found, and the event goes unhandled
+
+This propagation model allows for both localized handling of events and
+application-wide responses when needed.
+
+Example of event propagation:
+
+    # Component hierarchy: App > Window > Panel > Button
+    
+    # Button emits a "click" event
+    button.emit("click")
+    
+    # Event propagation:
+    # 1. Button's "click" handlers are called
+    # 2. If not handled, Panel's "click" handlers are called
+    # 3. If not handled, Window's "click" handlers are called
+    # 4. If not handled, App's "click" handlers are called
+    # 5. If still not handled, the event is considered unhandled
+
+Event Data
+---------
+
+Events in reterm can carry arbitrary data as keyword arguments. This allows
+components to pass relevant information along with the event. Common patterns
+include:
+
+1. Source Information:
+   - The component that originated the event
+   - The user action that triggered the event
+
+2. State Changes:
+   - Old and new values
+   - Changed properties
+
+3. Contextual Information:
+   - Related objects
+   - Timestamps
+   - Operation IDs for tracking
+
+Example of event data:
+
+    button.emit("click", 
+                position=(10, 20),
+                modifier_keys=["shift"],
+                timestamp=time.time())
+
+Event Handling Best Practices
+---------------------------
+
+1. Event Naming:
+   - Use clear, descriptive names for events
+   - Follow a consistent naming convention (e.g., verb_noun)
+   - Group related events with common prefixes
+
+2. Handler Design:
+   - Keep handlers focused on a single responsibility
+   - Avoid side effects that might trigger additional events
+   - Handle exceptions properly to prevent event processing from breaking
+
+3. Performance Considerations:
+   - Register only necessary event handlers
+   - Unregister handlers when components are destroyed
+   - Be mindful of the cost of event propagation in deep component trees
+
+4. Testing:
+   - Test event emission and handling in isolation
+   - Verify that events propagate correctly through the component hierarchy
+   - Test edge cases like unhandled events and exception handling
+
+Advanced Features
+---------------
+
+1. Event Filtering:
+
+    # Only handle events from a specific sender
+    @app.on("value_changed", sender=specific_component)
+    def handle_specific_change(sender, **kwargs):
+        print(f"Value changed in {sender}: {kwargs.get('new_value')}")
+
+2. One-time Event Handlers:
+
+    # Handler will be automatically removed after first execution
+    app.once("initialization_complete", handle_first_run)
+
+3. Event Transformation:
+
+    # Transform events before they reach handlers
+    @app.transform("mouse_move")
+    def throttle_mouse_events(sender, **kwargs):
+        # Only allow one mouse move event per 100ms
+        current_time = time.time()
+        if current_time - throttle_mouse_events.last_time < 0.1:
+            return None  # Drop this event
+        
+        throttle_mouse_events.last_time = current_time
+        return kwargs  # Pass the event through
+    
+    throttle_mouse_events.last_time = 0
+
+4. Event Logging and Debugging:
+
+    # Log all events for debugging
+    @app.on("*")  # Wildcard to catch all events
+    def log_all_events(sender, signal, **kwargs):
+        app.logger.debug(f"Event: {signal} from {sender} with data {kwargs}")
+
+Integration with Key Binding System
+---------------------------------
+
+The event handling system integrates seamlessly with reterm's key binding system:
+
+1. Key bindings in the YAML configuration map keys to event names
+2. When a key is pressed, the corresponding event is emitted
+3. Components register handlers for these events without needing to know which
+   keys trigger them
+
+This separation of concerns allows for flexible key configuration without
+changing application code.
+
+Example:
+
+    # YAML Configuration
+    key_bindings:
+      global:
+        - key: "Ctrl+S"
+          event: "save_document"
+    
+    # Application Code
+    @app.on("save_document")
+    def handle_save(sender, **kwargs):
+        # Save the current document
+        # No reference to Ctrl+S here, just the event name
+
+Conclusion
+---------
+
+reterm's event handling system, built on blinker, provides a powerful and
+flexible way to manage communication between components. By centralizing event
+management in the App class and following the observer pattern, reterm
+applications can maintain clean separation of concerns while still allowing
+components to interact when necessary.
+
+The combination of named events, hierarchical propagation, and integration with
+the key binding system creates a cohesive framework for building responsive and
+maintainable terminal applications.

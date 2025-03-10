@@ -1,0 +1,413 @@
+Color and Theming
+===============
+
+reterm provides a comprehensive color and theming system that allows you to
+define the visual appearance of your terminal application in a declarative way.
+This system makes it easy to create consistent, attractive interfaces and
+support multiple themes.
+
+Basic Structure
+-------------
+
+Color schemes are defined in the `colors` section of your YAML configuration:
+
+    app:
+      colors:
+        # Base theme
+        theme: "dark"  # or "light"
+        
+        # Color definitions
+        palette:
+          primary: "blue"
+          secondary: "cyan"
+          accent: "yellow"
+          error: "red"
+          success: "green"
+          warning: "orange"
+        
+        # Component-specific colors
+        components:
+          Window:
+            border: "primary"
+            title: "accent"
+          
+          Button:
+            normal: "secondary"
+            focused: "primary"
+            pressed: "accent"
+            disabled: "gray"
+          
+          Editor:
+            background: "black"
+            text: "white"
+            cursor: "primary"
+            selection: "secondary"
+            line_numbers: "gray"
+
+Color Specification
+-----------------
+
+Colors can be specified in several formats:
+
+1. Named Colors:
+   - Basic colors: "black", "red", "green", "yellow", "blue", "magenta", "cyan",
+     "white"
+   - Bright variants: "bright_black" (gray), "bright_red", "bright_green", etc.
+   - Extended names: "orange", "pink", "purple", etc.
+
+2. ANSI Color Codes:
+   - Standard colors: "ansi:30" (black) through "ansi:37" (white)
+   - Bright colors: "ansi:90" (bright black) through "ansi:97" (bright white)
+   - Background colors: "ansi:40" (black bg) through "ansi:47" (white bg)
+
+3. RGB Values:
+   - Hexadecimal: "rgb:ff0000" (red), "rgb:00ff00" (green), "rgb:0000ff" (blue)
+   - Short hex: "rgb:f00" (equivalent to "rgb:ff0000")
+
+4. Palette References:
+   - References to colors defined in the palette: "primary", "secondary", etc.
+   - These allow for consistent color usage throughout the application
+
+Color Palette
+-----------
+
+The color palette defines named colors that can be referenced throughout your
+application:
+
+    colors:
+      palette:
+        primary: "blue"
+        secondary: "cyan"
+        accent: "yellow"
+        error: "red"
+        success: "green"
+        warning: "orange"
+        
+        # Custom colors
+        header_bg: "rgb:2a2a2a"
+        content_bg: "rgb:1e1e1e"
+        subtle_text: "rgb:aaaaaa"
+
+Using a palette has several advantages:
+
+1. Consistency: Ensures the same colors are used throughout the application
+2. Maintainability: Change a color in one place to update it everywhere
+3. Semantics: Colors are named according to their purpose, not their value
+
+Themes
+-----
+
+reterm supports multiple themes through the `theme` property:
+
+    colors:
+      theme: "dark"  # or "light"
+
+Built-in themes include:
+
+1. "dark": A dark theme with light text, suitable for low-light environments
+2. "light": A light theme with dark text, suitable for bright environments
+
+You can also define custom themes:
+
+    colors:
+      themes:
+        dark:
+          background: "rgb:1e1e1e"
+          text: "rgb:ffffff"
+          primary: "rgb:569cd6"
+          secondary: "rgb:9cdcfe"
+          accent: "rgb:dcdcaa"
+        
+        light:
+          background: "rgb:ffffff"
+          text: "rgb:000000"
+          primary: "rgb:0000ff"
+          secondary: "rgb:0070c1"
+          accent: "rgb:795e26"
+        
+        solarized_dark:
+          background: "rgb:002b36"
+          text: "rgb:839496"
+          primary: "rgb:268bd2"
+          secondary: "rgb:2aa198"
+          accent: "rgb:b58900"
+      
+      # Active theme
+      theme: "dark"
+
+The active theme can be changed dynamically through application state:
+
+    app:
+      state:
+        current_theme: "dark"
+      
+      colors:
+        theme: "@state.current_theme"
+
+Component-Specific Colors
+-----------------------
+
+Different components can have their own color settings:
+
+    colors:
+      components:
+        Window:
+          border: "primary"
+          title: "accent"
+        
+        Button:
+          normal: "secondary"
+          focused: "primary"
+          pressed: "accent"
+          disabled: "gray"
+        
+        Editor:
+          background: "black"
+          text: "white"
+          cursor: "primary"
+          selection: "secondary"
+          line_numbers: "gray"
+
+Each component type has its own set of color properties that control different
+aspects of its appearance. Common properties include:
+
+- background: The component's background color
+- text: The component's text color
+- border: The color of the component's border
+- focused: Colors applied when the component has focus
+- disabled: Colors applied when the component is disabled
+
+Component-specific colors override global theme colors when both are defined.
+
+Instance-Specific Colors
+----------------------
+
+You can also define colors for specific component instances:
+
+    components:
+      - type: Button
+        id: save_button
+        label: "Save"
+        style:
+          normal:
+            background: "success"
+            text: "white"
+          focused:
+            background: "bright_green"
+            text: "black"
+      
+      - type: Button
+        id: cancel_button
+        label: "Cancel"
+        style:
+          normal:
+            background: "error"
+            text: "white"
+          focused:
+            background: "bright_red"
+            text: "black"
+
+Instance-specific colors override both component-type colors and global theme
+colors.
+
+Style States
+-----------
+
+Components can have different styles depending on their state:
+
+    components:
+      - type: Button
+        id: save_button
+        label: "Save"
+        style:
+          normal:
+            background: "blue"
+            text: "white"
+          focused:
+            background: "bright_blue"
+            text: "white"
+          pressed:
+            background: "white"
+            text: "blue"
+          disabled:
+            background: "gray"
+            text: "dark_gray"
+
+Common style states include:
+
+- normal: The default appearance
+- focused: When the component has keyboard focus
+- pressed/active: When the component is being activated
+- disabled: When the component is disabled
+- selected: When the component is selected
+- hover: When the cursor is over the component (in mouse-enabled terminals)
+
+Color Inheritance
+---------------
+
+Colors follow an inheritance hierarchy:
+
+1. Instance-specific colors (highest precedence)
+2. Component-type colors
+3. Theme colors
+4. Default colors (lowest precedence)
+
+This allows you to define general color schemes at the theme level while
+overriding specific colors for certain component types or instances.
+
+Terminal Capabilities
+------------------
+
+reterm automatically adapts to the terminal's color capabilities:
+
+1. 16-color terminals: Colors are approximated using the basic ANSI colors
+2. 256-color terminals: Extended color palette is used
+3. True-color terminals: Full RGB colors are displayed
+
+You can specify fallbacks for terminals with limited color support:
+
+    colors:
+      palette:
+        primary:
+          true_color: "rgb:569cd6"  # Used in true-color terminals
+          256_color: "ansi:27"      # Used in 256-color terminals
+          16_color: "blue"          # Used in 16-color terminals
+
+This ensures your application looks good across different terminal emulators.
+
+Text Attributes
+-------------
+
+In addition to colors, you can specify text attributes:
+
+    style:
+      normal:
+        background: "blue"
+        text: "white"
+        bold: true
+        underline: false
+      
+      focused:
+        background: "bright_blue"
+        text: "white"
+        bold: true
+        underline: true
+
+Available attributes include:
+
+- bold: Makes text bold or bright
+- dim: Makes text dim or faint
+- italic: Displays text in italics (if supported by the terminal)
+- underline: Underlines text
+- blink: Makes text blink (use sparingly!)
+- reverse: Swaps background and foreground colors
+- hidden: Hides text (useful for passwords)
+- strikethrough: Adds a line through text
+
+Example: Complete Theme
+--------------------
+
+Here's a comprehensive example of a complete theme definition:
+
+    app:
+      colors:
+        # Theme definition
+        themes:
+          dark:
+            background: "rgb:1e1e1e"
+            text: "rgb:d4d4d4"
+            primary: "rgb:569cd6"
+            secondary: "rgb:9cdcfe"
+            accent: "rgb:dcdcaa"
+            success: "rgb:6a9955"
+            error: "rgb:f44747"
+            warning: "rgb:ce9178"
+          
+          light:
+            background: "rgb:ffffff"
+            text: "rgb:000000"
+            primary: "rgb:0000ff"
+            secondary: "rgb:0070c1"
+            accent: "rgb:795e26"
+            success: "rgb:008000"
+            error: "rgb:ff0000"
+            warning: "rgb:ff8c00"
+        
+        # Active theme
+        theme: "dark"
+        
+        # Component-specific colors
+        components:
+          Window:
+            border: "primary"
+            title: "accent"
+          
+          Button:
+            normal:
+              background: "primary"
+              text: "background"
+            focused:
+              background: "accent"
+              text: "background"
+            pressed:
+              background: "secondary"
+              text: "background"
+            disabled:
+              background: "rgb:555555"
+              text: "rgb:aaaaaa"
+          
+          Input:
+            background: "rgb:2d2d2d"
+            text: "text"
+            placeholder: "rgb:888888"
+            border:
+              normal: "rgb:3c3c3c"
+              focused: "primary"
+          
+          List:
+            background: "background"
+            text: "text"
+            selected:
+              background: "primary"
+              text: "background"
+            alternate_row: "rgb:252525"
+          
+          StatusBar:
+            background: "rgb:007acc"
+            text: "white"
+
+Best Practices
+------------
+
+1. Color Usage:
+   - Use a limited color palette for consistency
+   - Follow color contrast guidelines for readability
+   - Use color to reinforce meaning, not as the only indicator
+   - Be mindful of color blindness and accessibility
+
+2. Theming:
+   - Always test both light and dark themes
+   - Ensure sufficient contrast in all themes
+   - Consider providing a high-contrast theme for accessibility
+
+3. Organization:
+   - Use the palette for semantic color naming
+   - Group related colors together
+   - Document the purpose of each color
+
+4. Performance:
+   - Be mindful of terminals with limited color support
+   - Provide appropriate fallbacks for different terminal capabilities
+   - Test your application in various terminal emulators
+
+Conclusion
+---------
+
+reterm's color and theming system provides a powerful way to define the visual
+appearance of your terminal applications. By separating color definitions from
+component structure, it allows for consistent styling and easy theme switching.
+
+The hierarchical approach to color definition—from themes to component types to
+individual instances—gives you fine-grained control while maintaining overall
+consistency. This makes it possible to create terminal applications that are
+both visually appealing and highly usable.

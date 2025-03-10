@@ -1,0 +1,239 @@
+Keypress Handling
+================
+
+reterm provides a flexible and powerful keypress handling system that separates
+key bindings from event handling. This separation of concerns allows for greater
+configurability and makes applications more maintainable.
+
+Introduction and Overview
+------------------------
+
+The keypress handling system in reterm is designed with several key principles:
+
+1. Separation of concerns: Key bindings are defined separately from the
+   components that handle the resulting events.
+
+2. Configurability: All key bindings are defined in YAML configuration,
+   making them easy to modify without changing code.
+
+3. Conflict detection: The system automatically detects conflicting key
+   bindings and raises exceptions to prevent ambiguous behavior.
+
+4. Platform normalization: Key differences between platforms are normalized,
+   providing a consistent experience for application developers.
+
+5. Default navigation: Common navigation patterns (arrows, tab) are
+   automatically handled for a familiar user experience.
+
+Key Binding Configuration
+------------------------
+
+Key bindings are defined in the application's YAML configuration file. They can
+be specified at two levels:
+
+1. Global bindings: Applied throughout the entire application
+2. Component-specific bindings: Applied only to specific components
+
+Example of key binding configuration:
+
+    key_bindings:
+      global:
+        - key: "Ctrl+S"
+          event: "save_document"
+        - key: "Ctrl+Q"
+          event: "quit_application"
+        - key: "F1"
+          event: "show_help"
+      
+      components:
+        editor:
+          - key: "Ctrl+F"
+            event: "find_text"
+          - key: "Ctrl+R"
+            event: "replace_text"
+        
+        file_browser:
+          - key: "Enter"
+            event: "open_file"
+          - key: "Delete"
+            event: "delete_file"
+
+Key Combination Syntax
+---------------------
+
+Key combinations use a familiar syntax similar to GUI applications:
+
+- Single keys: "a", "b", "Enter", "Escape", "Space"
+- Modifier keys: "Ctrl+S", "Alt+F4", "Shift+Tab"
+- Multiple modifiers: "Ctrl+Shift+T", "Ctrl+Alt+Delete"
+- Function keys: "F1", "F2", etc.
+- Special keys: "Home", "End", "PageUp", "PageDown", "Insert", "Delete"
+- Arrow keys: "Up", "Down", "Left", "Right"
+
+Event System
+-----------
+
+When a key is pressed, the following process occurs:
+
+1. The key is normalized to account for platform differences
+2. The system checks if there's a binding for this key in the current context
+3. If a binding exists, the corresponding event is generated
+4. The event is propagated through the component tree
+5. If a component handles the event, propagation stops
+6. If no component handles the event, it bubbles up to parent components
+
+Event Flow Diagram:
+
+    Physical Key Press
+        |
+        v
+    Key Normalization
+        |
+        v
+    Binding Exists? --No--> Default Behavior
+        |
+        Yes
+        |
+        v
+    Generate Event
+        |
+        v
+    Event Propagation
+        |
+        v
+    Component Handles? --Yes--> Component Action
+        |
+        No
+        |
+        v
+    Bubble to Parent
+        |
+        v
+    Parent Exists? --Yes--> (Back to Event Propagation)
+        |
+        No
+        |
+        v
+    Unhandled Event
+
+Special Key Handling
+------------------
+
+reterm provides special handling for common navigation keys:
+
+1. Arrow Keys:
+   - Up/Down: Navigate through items in a vertical container
+   - Left/Right: Navigate through items in a horizontal container
+
+2. Tab Key:
+   - Tab: Move focus to the next focusable component
+   - Shift+Tab: Move focus to the previous focusable component
+
+3. Enter Key:
+   - Activate the currently focused component (e.g., press a button)
+
+4. Escape Key:
+   - Close dialogs, cancel operations, or return to previous screens
+
+These default behaviors can be overridden by defining specific bindings in the
+configuration.
+
+Conflict Detection
+----------------
+
+The system automatically detects conflicting key bindings during application
+initialization. A conflict occurs when:
+
+1. The same key is bound to different events at the same level
+2. A global binding conflicts with a component-specific binding
+
+When a conflict is detected, an exception is raised with details about the
+conflicting bindings. This ensures that all key bindings are unambiguous.
+
+Example exception message:
+
+    KeyBindingConflictError: Conflicting key bindings for 'Ctrl+S':
+    - Global binding to event 'save_document'
+    - Component 'editor' binding to event 'search_text'
+
+To resolve conflicts, you must modify your key binding configuration to ensure
+each key has only one binding in a given context.
+
+Examples and Use Cases
+--------------------
+
+1. Basic Navigation Application:
+
+    key_bindings:
+      global:
+        - key: "Ctrl+Q"
+          event: "quit_application"
+        - key: "F1"
+          event: "show_help"
+      
+      components:
+        main_menu:
+          - key: "Enter"
+            event: "select_menu_item"
+        
+        content_view:
+          - key: "PageDown"
+            event: "next_page"
+          - key: "PageUp"
+            event: "previous_page"
+
+2. Text Editor Application:
+
+    key_bindings:
+      global:
+        - key: "Ctrl+S"
+          event: "save_file"
+        - key: "Ctrl+O"
+          event: "open_file"
+        - key: "Ctrl+N"
+          event: "new_file"
+      
+      components:
+        editor:
+          - key: "Ctrl+Z"
+            event: "undo"
+          - key: "Ctrl+Y"
+            event: "redo"
+          - key: "Ctrl+F"
+            event: "find"
+          - key: "Ctrl+H"
+            event: "replace"
+
+Implementation Considerations
+---------------------------
+
+1. Performance:
+   - Key binding lookups should be optimized for speed
+   - Consider using a hash-based lookup structure
+   - Cache normalized keys to avoid repeated normalization
+
+2. Testing:
+   - Test key binding configuration parsing
+   - Test conflict detection with various scenarios
+   - Test event propagation through the component tree
+   - Test platform-specific key normalization
+
+3. Integration:
+   - The keypress handling system integrates with the component system
+   - Events generated from key presses follow the same path as other events
+   - Components can listen for specific events regardless of the key binding
+
+Best Practices
+------------
+
+1. Keep global key bindings to a minimum
+2. Use consistent key bindings across your application
+3. Follow platform conventions where appropriate
+4. Document all key bindings for users
+5. Consider accessibility when designing key bindings
+6. Provide a way for users to view all available key bindings
+7. Group related functionality under similar key combinations
+
+By following these guidelines, you can create applications with intuitive and
+consistent keyboard navigation that enhances the user experience while
+maintaining clean, maintainable code.

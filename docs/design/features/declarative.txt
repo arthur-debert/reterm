@@ -1,0 +1,647 @@
+Declarative UI System
+==================
+
+reterm provides a powerful declarative approach to building terminal user
+interfaces using YAML configuration. This approach separates the UI definition
+from application logic, making applications more maintainable and easier to
+modify.
+
+Core Concept
+-----------
+
+The declarative UI system allows developers to define their entire user
+interface, including component hierarchy, layouts, styles, key bindings, and
+event handlers, using YAML configuration files. This approach offers several
+advantages:
+
+1. Separation of concerns: UI structure is separated from application logic
+2. Rapid iteration: Change the UI without modifying code
+3. Readability: YAML is easy to read and understand
+4. Consistency: Enforces a consistent approach to UI definition
+5. Reusability: UI components can be easily reused across applications
+
+Basic Structure
+-------------
+
+A typical reterm YAML configuration has these main sections:
+
+    app:
+      title: "My Terminal Application"
+      version: "1.0.0"
+      
+      # UI component tree
+      components:
+        # Component definitions
+      
+      # Color schemes
+      colors:
+        # Color definitions
+      
+      # Text labels (for internationalization)
+      labels:
+        # Label definitions
+      
+      # Key bindings
+      key_bindings:
+        # Key binding definitions
+
+Component Definition
+------------------
+
+Components are defined in a hierarchical structure that mirrors the actual
+component tree in the application:
+
+    app:
+      components:
+        - type: Window
+          id: main_window
+          title: "Main Window"
+          min_size: [80, 24]
+          children:
+            - type: VBox
+              id: main_layout
+              children:
+                - type: NavBar
+                  id: top_nav
+                  items:
+                    - label: "File"
+                      id: file_menu
+                    - label: "Edit"
+                      id: edit_menu
+                    - label: "Help"
+                      id: help_menu
+                
+                - type: HBox
+                  id: content_area
+                  expand: true
+                  expand_weight: 3
+                  children:
+                    - type: FileTree
+                      id: file_browser
+                      expand: true
+                      expand_weight: 1
+                      path: "/home/user/documents"
+                    
+                    - type: Editor
+                      id: main_editor
+                      expand: true
+                      expand_weight: 3
+                      file: null
+                
+                - type: StatusBar
+                  id: status_bar
+                  text: "Ready"
+
+Each component definition includes:
+
+1. type: The component class name
+2. id: Unique identifier for the component
+3. children: Child components (for container types)
+4. Various component-specific properties
+
+Component Properties
+------------------
+
+Components can have various properties depending on their type:
+
+1. Common Properties (available to all components):
+   - id: Unique identifier
+   - min_size: Minimum size [width, height]
+   - max_size: Maximum size [width, height]
+   - expand: Whether the component should expand to fill available space
+   - expand_weight: Relative weight for expansion
+   - visible: Whether the component is visible
+   - enabled: Whether the component is enabled
+   - style: Component-specific style overrides
+   - on_event: Event handlers
+
+2. Type-Specific Properties:
+   - Window: title, border_style
+   - Button: label, on_press
+   - TextInput: value, placeholder, max_length
+   - List: items, selection_mode, on_select
+   - Table: columns, rows, sortable
+
+Example of component with type-specific properties:
+
+    - type: Button
+      id: save_button
+      label: "Save"
+      min_size: [10, 1]
+      max_size: [20, 1]
+      on_press: save_document
+      style:
+        focused: "reverse"
+        disabled: "dim"
+
+Color Schemes
+-----------
+
+Color schemes define the visual appearance of the application:
+
+    app:
+      colors:
+        # Base theme
+        theme: "dark"  # or "light"
+        
+        # Color definitions
+        palette:
+          primary: "blue"
+          secondary: "cyan"
+          accent: "yellow"
+          error: "red"
+          success: "green"
+          warning: "orange"
+        
+        # Component-specific colors
+        components:
+          Window:
+            border: "primary"
+            title: "accent"
+          
+          Button:
+            normal: "secondary"
+            focused: "primary"
+            pressed: "accent"
+            disabled: "gray"
+          
+          Editor:
+            background: "black"
+            text: "white"
+            cursor: "primary"
+            selection: "secondary"
+            line_numbers: "gray"
+
+Colors can be specified in several formats:
+
+1. Named colors: "red", "blue", "green", etc.
+2. ANSI color codes: "ansi:31" (red), "ansi:32" (green), etc.
+3. RGB values: "rgb:ff0000" (red), "rgb:00ff00" (green), etc.
+4. References to palette colors: "primary", "secondary", etc.
+
+Text Labels
+----------
+
+Labels allow for easy text customization and internationalization:
+
+    app:
+      labels:
+        # Common UI text
+        common:
+          ok: "OK"
+          cancel: "Cancel"
+          yes: "Yes"
+          no: "No"
+          save: "Save"
+          load: "Load"
+          error: "Error"
+          warning: "Warning"
+        
+        # Feature-specific text
+        file_operations:
+          new_file: "New File"
+          open_file: "Open File"
+          save_file: "Save File"
+          save_as: "Save As"
+          file_saved: "File saved successfully"
+          file_error: "Error saving file"
+        
+        # Help text
+        help:
+          welcome: "Welcome to My Application"
+          getting_started: "To get started, press Ctrl+N to create a new file"
+
+Labels are referenced in component definitions using a special syntax:
+
+    - type: Button
+      id: save_button
+      label: "@labels.common.save"  # References "Save" from labels
+
+This approach makes it easy to change all occurrences of a text string or
+implement internationalization by swapping label files.
+
+Key Bindings
+-----------
+
+Key bindings map keyboard inputs to events:
+
+    app:
+      key_bindings:
+        # Global key bindings
+        global:
+          - key: "Ctrl+S"
+            event: "save_document"
+          - key: "Ctrl+O"
+            event: "open_document"
+          - key: "F1"
+            event: "show_help"
+          - key: "Ctrl+Q"
+            event: "quit_application"
+        
+        # Component-specific key bindings
+        components:
+          editor:
+            - key: "Ctrl+F"
+              event: "find_text"
+            - key: "Ctrl+G"
+              event: "goto_line"
+            - key: "Ctrl+Z"
+              event: "undo"
+            - key: "Ctrl+Y"
+              event: "redo"
+          
+          file_browser:
+            - key: "Enter"
+              event: "open_selected"
+            - key: "Delete"
+              event: "delete_selected"
+            - key: "F2"
+              event: "rename_selected"
+
+Key bindings are separated from the components that handle them, allowing for
+easy customization without changing component behavior.
+
+Event Handlers
+------------
+
+Event handlers connect UI events to application logic:
+
+    app:
+      components:
+        - type: Button
+          id: save_button
+          label: "Save"
+          on_press: "save_document"
+        
+        - type: TextInput
+          id: search_input
+          placeholder: "Search..."
+          on_change: "update_search_results"
+          on_submit: "perform_search"
+
+Event handlers can be defined in several ways:
+
+1. String reference to a function in the application:
+   `on_press: "save_document"`
+
+2. Inline handler with simple actions:
+   ```
+   on_press:
+     action: "set_property"
+     component: "status_bar"
+     property: "text"
+     value: "Saving document..."
+   ```
+
+3. Multiple actions sequence:
+   ```
+   on_press:
+     - action: "set_property"
+       component: "status_bar"
+       property: "text"
+       value: "Saving document..."
+     
+     - action: "call_function"
+       function: "save_document"
+     
+     - action: "set_property"
+       component: "status_bar"
+       property: "text"
+       value: "Document saved"
+   ```
+
+This approach allows for simple UI interactions to be defined entirely in YAML,
+without requiring custom code.
+
+State Management
+--------------
+
+The declarative system includes basic state management:
+
+    app:
+      # Application state
+      state:
+        current_file: null
+        is_modified: false
+        search_query: ""
+        theme_mode: "dark"
+      
+      # State bindings
+      bindings:
+        - source: "state.current_file"
+          target: "main_window.title"
+          transform: "'Editor - ' + (value || 'Untitled')"
+        
+        - source: "state.is_modified"
+          target: "save_button.enabled"
+        
+        - source: "state.theme_mode"
+          target: "app.colors.theme"
+
+State bindings create reactive connections between application state and UI
+properties, automatically updating the UI when state changes.
+
+Conditional Rendering
+-------------------
+
+Components can be conditionally shown or configured based on state:
+
+    - type: Dialog
+      id: save_dialog
+      visible: "@state.show_save_dialog"
+      title: "Save Changes"
+      
+      children:
+        - type: Label
+          id: save_prompt
+          text: "Save changes to @state.current_file?"
+        
+        - type: HBox
+          id: button_container
+          children:
+            - type: Button
+              id: save_confirm
+              label: "Save"
+              on_press: "save_and_close"
+            
+            - type: Button
+              id: save_cancel
+              label: "Don't Save"
+              on_press: "close_without_saving"
+            
+            - type: Button
+              id: cancel_button
+              label: "Cancel"
+              on_press: "cancel_close"
+              visible: "@state.allow_cancel"
+
+This allows for dynamic UIs that respond to application state without requiring
+custom rendering code.
+
+Templates and Reusable Components
+-------------------------------
+
+For complex applications, you can define reusable component templates:
+
+    app:
+      # Component templates
+      templates:
+        form_field:
+          type: VBox
+          children:
+            - type: Label
+              id: "${id}_label"
+              text: "${label}"
+            - type: TextInput
+              id: "${id}_input"
+              value: "${value}"
+              on_change: "${on_change}"
+      
+      # Using templates
+      components:
+        - type: Form
+          id: user_form
+          children:
+            - template: form_field
+              id: username
+              label: "Username"
+              value: ""
+              on_change: "validate_username"
+            
+            - template: form_field
+              id: email
+              label: "Email"
+              value: ""
+              on_change: "validate_email"
+
+Templates support variable substitution using `${variable}` syntax, making it
+easy to create consistent, reusable UI patterns.
+
+Loading and Merging Configurations
+--------------------------------
+
+YAML configurations can be split across multiple files and merged:
+
+    # Main application configuration
+    app:
+      title: "My Application"
+      
+      # Include other configuration files
+      includes:
+        - components.yaml  # UI components
+        - colors.yaml      # Color schemes
+        - labels.yaml      # Text labels
+        - bindings.yaml    # Key bindings
+
+This modular approach makes it easier to manage large applications and reuse
+common configurations across multiple applications.
+
+Integration with Code
+-------------------
+
+While the declarative system allows for defining most of the UI in YAML, it
+seamlessly integrates with custom Python code:
+
+    # In your Python code
+    from reterm.app import App
+    from reterm.yaml import load_config
+    
+    # Load the YAML configuration
+    config = load_config("app.yaml")
+    
+    # Create the application
+    app = App(config)
+    
+    # Register event handlers
+    @app.handler("save_document")
+    def save_document(event):
+        # Implementation
+        filename = app.state.current_file
+        content = app.find_component_by_id("main_editor").content
+        with open(filename, "w") as f:
+            f.write(content)
+        app.state.is_modified = False
+    
+    # Run the application
+    app.run()
+
+The declarative system doesn't replace code entirely but rather separates UI
+structure from behavior, allowing each to be modified independently.
+
+Validation and Error Handling
+---------------------------
+
+reterm validates YAML configurations at load time to catch errors early:
+
+1. Schema validation ensures all required properties are present
+2. Type checking verifies property values have the correct types
+3. Reference validation ensures all referenced IDs, events, and functions exist
+4. Conflict detection identifies duplicate IDs and conflicting key bindings
+
+Validation errors include detailed information to help locate and fix issues:
+
+    Error in app.yaml, line 25, column 10:
+    Unknown component type 'Buttn'. Did you mean 'Button'?
+    
+    Error in components.yaml, line 42:
+    Duplicate component ID 'save_button'. IDs must be unique.
+    
+    Error in bindings.yaml, line 15:
+    Referenced state 'current_theme' does not exist. Available states: 
+    current_file, is_modified, search_query, theme_mode
+
+Best Practices
+------------
+
+1. Organization:
+   - Split large configurations into multiple files
+   - Group related components together
+   - Use consistent naming conventions for IDs
+
+2. Component Design:
+   - Keep component hierarchies shallow when possible
+   - Use templates for repeated patterns
+   - Prefer composition over complex individual components
+
+3. State Management:
+   - Keep state minimal and focused
+   - Use bindings rather than event handlers for UI updates
+   - Document the purpose of each state variable
+
+4. Performance:
+   - Be mindful of deep component nesting
+   - Limit the use of complex conditional expressions
+   - Use lazy loading for large configurations
+
+Example: Complete Application
+---------------------------
+
+Here's a simple but complete text editor application defined in YAML:
+
+    app:
+      title: "Simple Text Editor"
+      version: "1.0.0"
+      
+      # Application state
+      state:
+        current_file: null
+        is_modified: false
+        show_line_numbers: true
+      
+      # UI components
+      components:
+        - type: Window
+          id: main_window
+          title: "@state.current_file || 'Untitled'"
+          min_size: [80, 24]
+          children:
+            - type: VBox
+              id: main_layout
+              children:
+                # Menu bar
+                - type: MenuBar
+                  id: menu_bar
+                  items:
+                    - label: "File"
+                      children:
+                        - label: "New"
+                          on_select: "new_file"
+                          key_hint: "Ctrl+N"
+                        - label: "Open"
+                          on_select: "open_file"
+                          key_hint: "Ctrl+O"
+                        - label: "Save"
+                          on_select: "save_file"
+                          key_hint: "Ctrl+S"
+                          enabled: "@state.is_modified"
+                        - label: "Exit"
+                          on_select: "exit_app"
+                          key_hint: "Ctrl+Q"
+                    
+                    - label: "Edit"
+                      children:
+                        - label: "Cut"
+                          on_select: "cut_text"
+                          key_hint: "Ctrl+X"
+                        - label: "Copy"
+                          on_select: "copy_text"
+                          key_hint: "Ctrl+C"
+                        - label: "Paste"
+                          on_select: "paste_text"
+                          key_hint: "Ctrl+V"
+                    
+                    - label: "View"
+                      children:
+                        - label: "Line Numbers"
+                          on_select: "toggle_line_numbers"
+                          checked: "@state.show_line_numbers"
+                
+                # Editor area
+                - type: Editor
+                  id: text_editor
+                  expand: true
+                  show_line_numbers: "@state.show_line_numbers"
+                  on_change:
+                    action: "set_state"
+                    state: "is_modified"
+                    value: true
+                
+                # Status bar
+                - type: StatusBar
+                  id: status_bar
+                  text: "Ready"
+      
+      # Key bindings
+      key_bindings:
+        global:
+          - key: "Ctrl+N"
+            event: "new_file"
+          - key: "Ctrl+O"
+            event: "open_file"
+          - key: "Ctrl+S"
+            event: "save_file"
+          - key: "Ctrl+Q"
+            event: "exit_app"
+        
+        components:
+          text_editor:
+            - key: "Ctrl+X"
+              event: "cut_text"
+            - key: "Ctrl+C"
+              event: "copy_text"
+            - key: "Ctrl+V"
+              event: "paste_text"
+      
+      # Colors
+      colors:
+        theme: "dark"
+        palette:
+          primary: "blue"
+          secondary: "cyan"
+          background: "black"
+          text: "white"
+        
+        components:
+          Editor:
+            background: "background"
+            text: "text"
+            line_numbers: "secondary"
+          
+          StatusBar:
+            background: "primary"
+            text: "white"
+
+This example demonstrates how a complete application can be defined primarily
+through YAML configuration, with application logic handled separately in code.
+
+Conclusion
+---------
+
+reterm's declarative UI system provides a powerful way to define terminal user
+interfaces using YAML configuration. By separating UI structure from application
+logic, it makes applications more maintainable, easier to modify, and more
+consistent.
+
+The system's support for component hierarchies, styling, key bindings, event
+handling, and state management provides all the tools needed to create
+sophisticated terminal applications with minimal code.
