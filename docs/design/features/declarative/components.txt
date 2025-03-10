@@ -15,42 +15,42 @@ component tree in the application:
     app:
       components:
         - type: Window
-          id: main_window
+          name: main_window
           title: "Main Window"
           min_size: [80, 24]
           children:
             - type: VBox
-              id: main_layout
+              name: main_layout
               children:
                 - type: NavBar
-                  id: top_nav
+                  name: top_nav
                   items:
-                    - label: "File"
-                      id: file_menu
-                    - label: "Edit"
-                      id: edit_menu
-                    - label: "Help"
-                      id: help_menu
+                    - label: "{state.file_menu_label}"
+                      name: file_menu
+                    - label: "{state.edit_menu_label}"
+                      name: edit_menu
+                    - label: "{state.help_menu_label}"
+                      name: help_menu
                 
                 - type: HBox
-                  id: content_area
+                  name: content_area
                   expand: true
                   expand_weight: 3
                   children:
                     - type: FileTree
-                      id: file_browser
+                      name: file_browser
                       expand: true
                       expand_weight: 1
                       path: "/home/user/documents"
                     
                     - type: Editor
-                      id: main_editor
+                      name: main_editor
                       expand: true
                       expand_weight: 3
                       file: null
                 
                 - type: StatusBar
-                  id: status_bar
+                  name: status_bar
                   text: "Ready"
 
 This hierarchical structure allows for complex UIs to be built from simple
@@ -63,15 +63,16 @@ Component Definition
 Each component definition includes:
 
 1. type: The component class name
-2. id: Unique identifier for the component
+2. name: Mandatory identifier for the component (like HTML tags always have a name)
+   - Must be unique within its parent container
 3. children: Child components (for container types)
 4. Various component-specific properties
 
 Example of a simple component:
 
     - type: Button
-      id: save_button
-      label: "Save"
+      name: save_button
+      label: "{state.save_button_label}"
       on_press: "save_document"
 
 Component Types
@@ -93,34 +94,71 @@ Containers hold and manage other components:
 - Tabs: Tabbed container
 - ScrollView: Scrollable container
 - Form: Container for form elements
+- ActivatableContainer: Container that manages activation state of its children
 
 Example of a container component:
 
     - type: VBox
-      id: form_container
+      name: form_container
       children:
         - type: Label
-          id: form_title
+          name: form_title
           text: "User Information"
         
         - type: TextInput
-          id: name_input
-          label: "Name"
+          name: name_input
+          label: "{state.name_input_label}"
         
         - type: TextInput
-          id: email_input
-          label: "Email"
+          name: email_input
+          label: "{state.email_input_label}"
         
         - type: HBox
-          id: button_row
+          name: button_row
           children:
             - type: Button
-              id: submit_button
-              label: "Submit"
+              name: submit_button
+              label: "{state.submit_button_label}"
             
             - type: Button
-              id: cancel_button
-              label: "Cancel"
+              name: cancel_button
+              label: "{state.cancel_button_label}"
+
+Example of an ActivatableContainer component:
+
+    - type: ActivatableContainer
+      name: tab_container
+      activation: SINGLE
+      activates_on: ["click"]
+      children:
+        - type: Button
+          name: tab1
+          label: "{state.tab1_label}"
+          active: true  # Initially active
+        
+        - type: Button
+          name: tab2
+          label: "{state.tab2_label}"
+        
+        - type: Button
+          name: tab3
+          label: "{state.tab3_label}"
+
+    - type: ActivatableContainer
+      name: checkbox_group
+      activation: MULTIPLE
+      children:
+        - type: Checkbox
+          name: option1
+          label: "{state.option1_label}"
+        
+        - type: Checkbox
+          name: option2
+          label: "{state.option2_label}"
+        
+        - type: Checkbox
+          name: option3
+          label: "{state.option3_label}"
 
 2. Input Components
 -----------------
@@ -140,23 +178,23 @@ Components that accept user input:
 Example of input components:
 
     - type: Form
-      id: user_form
+      name: user_form
       children:
         - type: TextInput
-          id: username
-          label: "Username"
+          name: username
+          label: "{state.username_label}"
           placeholder: "Enter username"
           max_length: 20
         
         - type: PasswordInput
-          id: password
-          label: "Password"
+          name: password
+          label: "{state.password_label}"
           placeholder: "Enter password"
           mask_char: "*"
         
         - type: Checkbox
-          id: remember_me
-          label: "Remember me"
+          name: remember_me
+          label: "{state.remember_me_label}"
           checked: false
 
 3. Display Components
@@ -176,28 +214,28 @@ Components that display information:
 Example of display components:
 
     - type: VBox
-      id: dashboard
+      name: dashboard
       children:
         - type: Label
-          id: dashboard_title
+          name: dashboard_title
           text: "System Status"
           style:
             bold: true
         
         - type: ProgressBar
-          id: cpu_usage
-          label: "CPU Usage"
+          name: cpu_usage
+          label: "{state.cpu_usage_label}"
           value: 45
           max: 100
         
         - type: ProgressBar
-          id: memory_usage
-          label: "Memory Usage"
+          name: memory_usage
+          label: "{state.memory_usage_label}"
           value: 60
           max: 100
         
         - type: Table
-          id: process_table
+          name: process_table
           columns:
             - name: "PID"
               width: 6
@@ -227,34 +265,34 @@ Components for navigation and structure:
 Example of navigation components:
 
     - type: VBox
-      id: app_layout
+      name: app_layout
       children:
         - type: NavBar
-          id: main_nav
+          name: main_nav
           items:
-            - label: "Dashboard"
-              id: nav_dashboard
-            - label: "Users"
-              id: nav_users
-            - label: "Settings"
-              id: nav_settings
+            - label: "{state.dashboard_label}"
+              name: nav_dashboard
+            - label: "{state.users_label}"
+              name: nav_users
+            - label: "{state.settings_label}"
+              name: nav_settings
         
         - type: HBox
-          id: content_area
+          name: content_area
           children:
             - type: Sidebar
-              id: side_nav
+              name: side_nav
               width: 20
               items:
-                - label: "Overview"
-                  id: side_overview
-                - label: "Statistics"
-                  id: side_stats
-                - label: "Reports"
-                  id: side_reports
+                - label: "{state.overview_label}"
+                  name: side_overview
+                - label: "{state.statistics_label}"
+                  name: side_stats
+                - label: "{state.reports_label}"
+                  name: side_reports
             
             - type: Panel
-              id: main_content
+              name: main_content
               expand: true
 
 Component Properties
@@ -263,7 +301,9 @@ Component Properties
 Components can have various properties depending on their type:
 
 1. Common Properties (available to all components):
-   - id: Unique identifier
+   - name: Mandatory identifier (unique within parent container)
+   - id: Optional globally unique identifier for direct component lookup
+     - When provided, must be unique across the entire application
    - min_size: Minimum size [width, height]
    - max_size: Maximum size [width, height]
    - expand: Whether the component should expand to fill available space
@@ -279,12 +319,13 @@ Components can have various properties depending on their type:
    - TextInput: value, placeholder, max_length
    - List: items, selection_mode, on_select
    - Table: columns, rows, sortable
+   - ActivatableContainer: activation, activates_on
 
 Example of component with type-specific properties:
 
     - type: Button
-      id: save_button
-      label: "Save"
+      name: save_button
+      label: "{state.save_button_label}"
       min_size: [10, 1]
       max_size: [20, 1]
       on_press: save_document
@@ -298,14 +339,14 @@ Dynamic Properties
 Component properties can reference application state or other dynamic values:
 
     - type: Label
-      id: welcome_label
-      text: "Welcome, @state.user_name!"
-      visible: "@state.is_logged_in"
+      name: welcome_label
+      text: "Welcome, {state.user_name}!"
+      visible: "{state.is_logged_in}"
 
     - type: ProgressBar
-      id: task_progress
+      name: task_progress
       label: "Task Progress"
-      value: "@state.completed_tasks"
+      value: "{state.completed_tasks}"
       max: "@state.total_tasks"
 
 This allows components to automatically update when the referenced state
@@ -336,18 +377,18 @@ reterm provides several ways to control component layout:
 Example of layout properties:
 
     - type: HBox
-      id: button_row
+      name: button_row
       children:
         - type: Button
-          id: cancel_button
-          label: "Cancel"
+          name: cancel_button
+          label: "{state.cancel_button_label}"
           expand: true
           expand_weight: 1
           h_align: "left"
         
         - type: Button
-          id: save_button
-          label: "Save"
+          name: save_button
+          label: "{state.save_button_label}"
           expand: true
           expand_weight: 1
           h_align: "right"
@@ -361,7 +402,7 @@ Different container types have their own layout properties:
    - spacing: Space between children
    - align: Alignment of children ("start", "center", "end", "stretch")
 
-2. Grid:
+2. Grname:
    - columns: Number of columns
    - rows: Number of rows
    - column_spacing: Space between columns
@@ -374,32 +415,32 @@ Different container types have their own layout properties:
 Example of container-specific layout:
 
     - type: Grid
-      id: dashboard_grid
+      name: dashboard_grid
       columns: 2
       rows: 2
       column_spacing: 2
       row_spacing: 1
       children:
         - type: Panel
-          id: cpu_panel
+          name: cpu_panel
           title: "CPU Usage"
           grid_column: 0
           grid_row: 0
         
         - type: Panel
-          id: memory_panel
+          name: memory_panel
           title: "Memory Usage"
           grid_column: 1
           grid_row: 0
         
         - type: Panel
-          id: disk_panel
+          name: disk_panel
           title: "Disk Usage"
           grid_column: 0
           grid_row: 1
         
         - type: Panel
-          id: network_panel
+          name: network_panel
           title: "Network Usage"
           grid_column: 1
           grid_row: 1
@@ -427,26 +468,52 @@ reterm automatically manages focus between components:
 Example of focus properties:
 
     - type: Form
-      id: login_form
+      name: login_form
       children:
         - type: TextInput
-          id: username_input
-          label: "Username"
+          name: username_input
+          label: "{state.username_label}"
           tab_index: 1  # Focus order
         
         - type: PasswordInput
-          id: password_input
-          label: "Password"
+          name: password_input
+          label: "{state.password_label}"
           tab_index: 2
         
         - type: Button
-          id: login_button
-          label: "Login"
+          name: login_button
+          label: "{state.login_button_label}"
           tab_index: 3
           default: true  # Gets focus by default
 
 Component State
 -------------
+
+It's important to understand the distinction between component properties and state:
+
+### Component Properties
+
+- **Definition**: Configuration values that define how a component behaves and appears
+- **Set at**: Primarily defined at component creation time in YAML
+- **Mutability**: Generally static, though can be updated programmatically
+- **Examples**: 
+  - `min_size`, `max_size` (layout constraints)
+  - `label` text for buttons
+  - `placeholder` text for inputs
+  - Event handler definitions
+  - Style definitions
+
+### Component State
+
+- **Definition**: Dynamic values that represent the current condition of a component
+- **Set at**: Runtime, changes during user interaction or program execution
+- **Mutability**: Highly dynamic, expected to change during application lifecycle
+- **Examples**:
+  - `focused`: Whether the component currently has focus
+  - `value`: Current text in a TextInput
+  - `checked`: Whether a checkbox is checked
+  - `selected_index`: Currently selected item in a list
+  - `expanded`: Whether a collapsible section is expanded
 
 Components maintain their own internal state, which can be accessed and
 modified:
@@ -468,12 +535,12 @@ modified:
 Example of component state:
 
     - type: TextInput
-      id: search_input
-      value: "@state.search_query"
+      name: search_input
+      value: "{state.search_query}"
       on_change:
         action: "set_state"
         state: "search_query"
-        value: "@event.data.value"
+        value: "{event.data.value}"
 
 Templates and Reusable Components
 -------------------------------
@@ -487,26 +554,26 @@ For complex applications, you can define reusable component templates:
           type: VBox
           children:
             - type: Label
-              id: "${id}_label"
+              name: "${id}_label"
               text: "${label}"
             - type: TextInput
-              id: "${id}_input"
+              name: "${id}_input"
               value: "${value}"
               on_change: "${on_change}"
       
       # Using templates
       components:
         - type: Form
-          id: user_form
+          name: user_form
           children:
             - template: form_field
-              id: username
+              name: username
               label: "Username"
               value: ""
               on_change: "validate_username"
             
             - template: form_field
-              id: email
+              name: email
               label: "Email"
               value: ""
               on_change: "validate_email"
@@ -520,22 +587,22 @@ Dynamic Component Creation
 Components can be created dynamically based on data:
 
     - type: List
-      id: todo_list
-      items: "@state.todo_items"
+      name: todo_list
+      items: "{state.todo_items}"
       item_template:
         type: HBox
         children:
           - type: Checkbox
-            id: "checkbox_${item.id}"
+            name: "checkbox_${item.id}"
             checked: "${item.completed}"
             on_change:
               action: "call_function"
               function: "toggle_todo"
               args:
-                id: "${item.id}"
+                name: "${item.id}"
           
           - type: Label
-            id: "label_${item.id}"
+            name: "label_${item.id}"
             text: "${item.text}"
             style:
               strikethrough: "${item.completed}"
@@ -567,7 +634,7 @@ You can define custom component types by extending existing ones:
 Then use it in your YAML configuration:
 
     - type: EmailInput
-      id: email_input
+      name: email_input
       label: "Email"
       placeholder: "Enter your email"
 
@@ -591,8 +658,8 @@ reterm provides several features to make your UI accessible:
 Example of accessibility properties:
 
     - type: Button
-      id: submit_button
-      label: "Submit"
+      name: submit_button
+      label: "{state.submit_button_label}"
       aria_label: "Submit form"
       aria_description: "Submit the form and process the data"
 
@@ -625,12 +692,12 @@ Example: Complete Form
 Here's a comprehensive example of a form with various components:
 
     - type: Form
-      id: user_registration_form
+      name: user_registration_form
       title: "User Registration"
       children:
         - type: TextInput
-          id: username_input
-          label: "Username"
+          name: username_input
+          label: "{state.username_label}"
           placeholder: "Enter username"
           min_length: 3
           max_length: 20
@@ -638,30 +705,30 @@ Here's a comprehensive example of a form with various components:
           on_change: "validate_username"
         
         - type: TextInput
-          id: email_input
-          label: "Email"
+          name: email_input
+          label: "{state.email_label}"
           placeholder: "Enter email"
           required: true
           on_change: "validate_email"
         
         - type: PasswordInput
-          id: password_input
-          label: "Password"
+          name: password_input
+          label: "{state.password_label}"
           placeholder: "Enter password"
           min_length: 8
           required: true
           on_change: "validate_password"
         
         - type: PasswordInput
-          id: confirm_password_input
-          label: "Confirm Password"
+          name: confirm_password_input
+          label: "{state.confirm_password_label}"
           placeholder: "Confirm password"
           required: true
           on_change: "validate_passwords_match"
         
         - type: Select
-          id: country_select
-          label: "Country"
+          name: country_select
+          label: "{state.country_label}"
           options:
             - value: "us"
               label: "United States"
@@ -674,37 +741,37 @@ Here's a comprehensive example of a form with various components:
           on_change: "update_country"
         
         - type: HBox
-          id: name_fields
+          name: name_fields
           children:
             - type: TextInput
-              id: first_name_input
-              label: "First Name"
+              name: first_name_input
+              label: "{state.first_name_label}"
               placeholder: "First name"
               required: true
             
             - type: TextInput
-              id: last_name_input
-              label: "Last Name"
+              name: last_name_input
+              label: "{state.last_name_label}"
               placeholder: "Last name"
               required: true
         
         - type: Checkbox
-          id: terms_checkbox
-          label: "I agree to the Terms of Service"
+          name: terms_checkbox
+          label: "{state.terms_checkbox_label}"
           required: true
           on_change: "update_submit_button"
         
         - type: HBox
-          id: button_row
+          name: button_row
           children:
             - type: Button
-              id: cancel_button
-              label: "Cancel"
+              name: cancel_button
+              label: "{state.cancel_button_label}"
               on_press: "cancel_registration"
             
             - type: Button
-              id: submit_button
-              label: "Submit"
+              name: submit_button
+              label: "{state.submit_button_label}"
               enabled: "@state.form_valid"
               on_press: "submit_registration"
 

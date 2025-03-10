@@ -54,7 +54,8 @@ component tree in the application:
     app:
       components:
         - type: Window
-          id: main_window
+          name: main_window
+          id: global_main_window  # Optional global identifier
           title: "Main Window"
           min_size: [80, 24]
           children:
@@ -95,7 +96,8 @@ component tree in the application:
 Each component definition includes:
 
 1. type: The component class name
-2. id: Unique identifier for the component
+2. name: Mandatory identifier for the component (like HTML tags always have a name)
+3. id: Optional globally unique identifier for direct component lookup
 3. children: Child components (for container types)
 4. Various component-specific properties
 
@@ -105,7 +107,8 @@ Component Properties
 Components can have various properties depending on their type:
 
 1. Common Properties (available to all components):
-   - id: Unique identifier
+   - name: Mandatory identifier (unique within parent container)
+   - id: Optional globally unique identifier (unique across the entire application)
    - min_size: Minimum size [width, height]
    - max_size: Maximum size [width, height]
    - expand: Whether the component should expand to fill available space
@@ -125,7 +128,8 @@ Components can have various properties depending on their type:
 Example of component with type-specific properties:
 
     - type: Button
-      id: save_button
+      name: save_button
+      id: global_save_button  # Optional global identifier
       label: "Save"
       min_size: [10, 1]
       max_size: [20, 1]
@@ -214,7 +218,7 @@ Labels allow for easy text customization and internationalization:
 Labels are referenced in component definitions using a special syntax:
 
     - type: Button
-      id: save_button
+      name: save_button
       label: "@labels.common.save"  # References "Save" from labels
 
 This approach makes it easy to change all occurrences of a text string or
@@ -269,13 +273,15 @@ Event handlers connect UI events to application logic:
     app:
       components:
         - type: Button
-          id: save_button
+          name: save_button
           label: "Save"
           on_press: "save_document"
         
         - type: TextInput
-          id: search_input
+          name: search_input
           placeholder: "Search..."
+          # Event handlers can be string references to functions
+          # or inline action definitions
           on_change: "update_search_results"
           on_submit: "perform_search"
 
@@ -316,6 +322,26 @@ without requiring custom code.
 State Management
 --------------
 
+It's important to understand the distinction between component properties and state:
+
+### Component Properties
+- Configuration values that define how a component behaves and appears
+- Set primarily at component creation time in YAML
+- Generally static, though can be updated programmatically
+- Examples: min_size, label text, placeholder text, event handlers
+
+### Component State
+- Dynamic values that represent the current condition of a component
+- Set at runtime, changes during user interaction
+- Highly dynamic, expected to change during application lifecycle
+- Examples: focused state, current text value, checked state
+
+### Application State
+- Global state that can affect multiple components
+- Represents the overall application condition
+- Referenced by components using {state.property} syntax
+- Changes trigger reactive updates to bound properties
+
 The declarative system includes basic state management:
 
     app:
@@ -329,11 +355,11 @@ The declarative system includes basic state management:
       # State bindings
       bindings:
         - source: "state.current_file"
-          target: "main_window.title"
+          target: "main_window.title"  # References component by name
           transform: "'Editor - ' + (value || 'Untitled')"
         
         - source: "state.is_modified"
-          target: "save_button.enabled"
+          target: "save_button.enabled"  # References component by name
         
         - source: "state.theme_mode"
           target: "app.colors.theme"
@@ -347,14 +373,14 @@ Conditional Rendering
 Components can be conditionally shown or configured based on state:
 
     - type: Dialog
-      id: save_dialog
-      visible: "@state.show_save_dialog"
+      name: save_dialog
+      visible: "{state.show_save_dialog}"
       title: "Save Changes"
       
       children:
         - type: Label
-          id: save_prompt
-          text: "Save changes to @state.current_file?"
+          name: save_prompt
+          text: "Save changes to {state.current_file}?"
         
         - type: HBox
           id: button_container
@@ -373,7 +399,7 @@ Components can be conditionally shown or configured based on state:
               id: cancel_button
               label: "Cancel"
               on_press: "cancel_close"
-              visible: "@state.allow_cancel"
+              visible: "{state.allow_cancel}"
 
 This allows for dynamic UIs that respond to application state without requiring
 custom rendering code.
@@ -457,7 +483,7 @@ seamlessly integrates with custom Python code:
     def save_document(event):
         # Implementation
         filename = app.state.current_file
-        content = app.find_component_by_id("main_editor").content
+        content = app.find_component("main_editor").content  # Find by name
         with open(filename, "w") as f:
             f.write(content)
         app.state.is_modified = False
@@ -531,7 +557,7 @@ Here's a simple but complete text editor application defined in YAML:
       # UI components
       components:
         - type: Window
-          id: main_window
+          name: main_window
           title: "@state.current_file || 'Untitled'"
           min_size: [80, 24]
           children:

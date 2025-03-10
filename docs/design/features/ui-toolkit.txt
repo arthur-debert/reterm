@@ -19,6 +19,10 @@ reterm's UI components are organized in a hierarchical structure:
     - List Container
     - Table
     - NavBar
+  - ActivatableContainer (for containers with activation management)
+    - List Container
+    - Table
+    - NavBar
 
 Component Base Class
 -------------------
@@ -26,7 +30,10 @@ Component Base Class
 The Component class is the foundation of all UI elements in reterm. It provides:
 
 1. Core Properties
-   - _id_: Unique identifier for the component
+   - _name_: Mandatory identifier for the component (like HTML tags always have a name)
+   - _id_: Optional globally unique identifier for direct component lookup from anywhere
+   - _selectable: Boolean flag indicating if the component can be focused. If true, the Tab key might focus it, but this does not indicate selection.
+   - _active_: Boolean flag indicating if the component is currently interactive. If true, the component responds to user input. If false, the component is static and does not respond to input. Defaults to true for Items and false for Containers.
    - _parent_: Reference to the parent container
    - _min_size/max_size_: Size constraints for layout
    - _visible_: Controls component visibility
@@ -52,7 +59,7 @@ The Component class is the foundation of all UI elements in reterm. It provides:
 Item Class
 ---------
 
-Items are the simplest form of UI components - they represent single, atomic UI elements that don't contain other components.
+Items are the simplest form of UI components, inheriting from `Component`. They represent single, atomic UI elements that *cannot* contain other components. They are leaf nodes in the component tree.
 
 1. Characteristics
    - Self-contained UI elements with a single responsibility
@@ -75,7 +82,8 @@ Items are the simplest form of UI components - they represent single, atomic UI 
 4. Example: Button Implementation
 
     - type: Button
-      id: save_button
+      name: save_button
+      id: global_save_button  # Optional global identifier
       label: "Save"
       on_press: save_data
       min_size: [10, 1]
@@ -88,7 +96,7 @@ Items are the simplest form of UI components - they represent single, atomic UI 
 Container Class
 --------------
 
-Containers are components that can hold and manage other components (both Items and other Containers).
+Containers are components, inheriting from `Component`, that can hold and manage other components (both Items and other Containers). They are branch nodes in the component tree.
 
 1. Characteristics
    - Manage a collection of child components
@@ -99,7 +107,7 @@ Containers are components that can hold and manage other components (both Items 
 2. Child Management
    - _add_child(component)_: Add a component to the container
    - _remove_child(component)_: Remove a component from the container
-   - _get_child(id)_: Retrieve a child by ID
+   - _get_child(name)_: Retrieve a child by name
    - _children_: Access the list of all children
 
 3. Layout Management
@@ -123,7 +131,8 @@ Containers are components that can hold and manage other components (both Items 
 6. Example: Dialog Implementation
 
     - type: Dialog
-      id: confirm_dialog
+      name: confirm_dialog
+      id: global_confirm_dialog  # Optional global identifier
       title: "Confirm Action"
       min_size: [40, 10]
       children:
@@ -144,6 +153,58 @@ Containers are components that can hold and manage other components (both Items 
               on_press: close_dialog
     
 
+ActivatableContainer Class
+--------------------------
+
+The `ActivatableContainer` class extends the `Container` class, adding the ability to manage the activation state of its child components. It provides different activation modes to control how many children can be active at a time.
+
+1. Characteristics
+   - Inherits all properties and methods from `Container`.
+   - Manages the activation state of its children.
+   - Supports different activation modes.
+
+2. Activation Property
+   - `activation`: Controls the activation behavior. Possible values:
+     - `SINGLE`: Only one child can be active at a time. Activating a new child deactivates the previously active one.
+     - `MULTIPLE`: Multiple children can be active simultaneously.
+     - `SINGLE_NULL`: Similar to `SINGLE`, but allows no children to be active.
+
+3. Active Property
+   - The `active` property of child components is used to represent their activation state.
+
+4. Activation Trigger
+   - For some components (like lists and buttons), activation can be triggered automatically by events (e.g., clicking).
+   - For other components, activation is controlled by application code.
+   - A mechanism (e.g., an `activates_on` property) will be provided to specify which events trigger activation.
+
+5. Example
+
+    - type: ActivatableContainer
+      name: my_list
+      activation: SINGLE_NULL
+      children:
+        - type: Item
+          id: item1
+          label: "Item 1"
+        - type: Item
+          id: item2
+          label: "Item 2"
+        - type: Item
+          id: item3
+          label: "Item 3"
+
+    - type: ActivatableContainer
+      name: my_multiselect_list
+      activation: MULTIPLE
+      activates_on: ["click"]
+      children:
+        - type: Item
+          id: itemA
+          label: "Item A"
+        - type: Item
+          id: itemB
+          label: "Item B"
+
 Component Relationships
 ---------------------
 
@@ -163,6 +224,19 @@ Component Relationships
    - Components can share state with their children
    - State changes trigger updates in affected components
    - The reactive system ensures that UI updates reflect the current state
+
+4. Component Properties vs. State
+   - Properties: Configuration values that define how a component behaves and appears
+     - Set primarily at component creation time in YAML
+     - Generally static, though can be updated programmatically
+     - Examples: min_size, label text, placeholder text, event handlers
+   - Component State: Dynamic values that represent the current condition of a component
+     - Set at runtime, changes during user interaction
+     - Highly dynamic, expected to change during application lifecycle
+     - Examples: focused state, current text value, checked state
+   - Application State: Global state that can affect multiple components
+     - Represents the overall application condition
+     - Referenced by components using {state.property} syntax
 
 Guidelines and Best Practices
 ---------------------------

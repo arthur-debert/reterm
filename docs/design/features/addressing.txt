@@ -1,0 +1,17 @@
+Component Addressing Approaches
+-----------------------------
+
+reterm provides multiple ways to address components:
+
+1. By Name: The primary way to address components within their parent container
+   
+   # full path, default mode
+   app.find(name="main_editor.menu.file.print")
+
+   app.find(id="global_main_editor")
+
+
+   app.find(type="Button", enabled=True)
+
+  # fuzzy hierachy
+  app.find(name="print", from_tree="main_editor.menu)
